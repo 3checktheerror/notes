@@ -8,6 +8,10 @@ ctrl + /
 
 
 
+# Typora的各种链接跳转
+
+[点击这里](https://blog.csdn.net/qq_41907769/article/details/121722716)
+
 # 标题
 
 ```markdown
