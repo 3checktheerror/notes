@@ -974,15 +974,40 @@ class Person {
 **接口和实现类不是继承关系，但类似继承关系**
 
 1. 用interface来定义。
+
 2. 接口中的所有**成员变量**都默认是由**public** static final修饰的。
+
 3. 接口中的所有**抽象方法**都默认是由**public** abstract修饰的。
+
 4. 接口中没有构造器。
+
 5. 接口采用多继承机制。
+
 6. 一个类可以实现多个接口，接口也可以继承其它接口
+
 7. 实现接口的类中必须提供接口中所有方法的具体实现内容，方可实例化。否则，仍为抽象类
+
 8. 接口的主要用途就是被 实现类 实现（面向接口编程）
+
 9. 接口与实现类之间存在多态性
+
 10. 与继承关系类似，接口与实现类之间存在多态性
+
+11. **接口中不能有函数体，除非default**
+
+    ```java
+    interface Father{
+    	public void help();
+    }
+    interface Father{
+    	default public void help(){
+            sout("....");
+        }
+    }	
+    
+    ```
+
+    
 
 ![image-20230127142439443](Java基础.assets/image-20230127142439443.png)
 
@@ -1045,6 +1070,8 @@ class C extends B implements A {
 ```
 
 ![image-20230128142846213](Java基础.assets/image-20230128142846213.png)
+
+
 
 上面没有调用，也不能调用接口的构造器 （接口没有构造器)！new用在接口上不太一样，后面加花括号这种写法，**实际是new了一个实现接口的匿名类，并用那个匿名类构造出一个对象。开发人员需要在匿名类内部（花括号内）实现你那个接口**
 
@@ -1445,7 +1472,7 @@ This code creates an anonymous inner class that extends or implements the class 
 Object obj = new obj(){};
 ```
 
-
+**Person.new = new Person**
 
 
 
@@ -1530,6 +1557,166 @@ String intStr = 5 + “”//这里调用了包装Integer的toString方法
 ```java
 new Person().shout();//可以使用匿名对象调用方法
 ```
+
+
+
+### 异常
+
+unchecked and checked
+
+unchecked: 不需要被处理
+
+checked: 需要被处理
+
+<img src="Java基础.assets/image-20230130132938764.png" alt="image-20230130132938764" style="zoom: 80%;" />
+
+
+
+#### 类型
+
+* Error
+
+  Java虚拟机无法解决的严重问题。如：JVM系统内部错误、资源耗尽等严重情况。比如：StackOverflowError和OOM。一般不编写针对性的代码进行处理。
+
+* Exception
+
+  分为**编译时异常**和**运行时异常**
+
+  **运行时异常**
+
+  * 是指编译器不要求强制处置的异常。一般是指编程时的逻辑错误，是程序员应该积极避免其出现的异常。java.lang.RuntimeException类及它的子类都是运行时异常。
+  * 对于这类异常，**可以不作处理**，因为这类异常很普遍，若全处理可能会对程序的可读性和运行效率产生影响
+
+  **编译时异常**
+
+  * 是指编译器要求必须处置的异常。即程序在运行时由于外界因素造成的一般性异常。**编译器要求Java程序必须捕获或声明所有编译时异常。**
+  * 对于这类异常，如果程序不处理，可能会带来意想不到的结果
+
+  ​    其它因编程错误或偶然的外在因素导致的一般性问题，可以使用针对性的代码进行处理。例如：
+
+  1. 空指针访问
+  2. 试图读取不存在的文件
+  3. 网络连接中断
+  4. 数组角标越界
+
+#### 异常的处理
+
+<img src="Java基础.assets/image-20230130134613909.png" alt="image-20230130134613909" style="zoom:67%;" />
+
+<img src="Java基础.assets/image-20230130134828424.png" alt="image-20230130134828424" style="zoom:67%;" />
+
+Java 程序的执行过程中如出现异常，会生成一个异常类对象。该异常对象将被提交给 Java 运行时系统，这个过程称为抛出( throw）异常
+
+**异常对象的生成**
+
+1. 由虚拟机自动生成：程序运行过程中，虚拟机检测到程序发生了问题，如果在当前代码中没有找到相应的处理程序，**就会在后台自动创建一个对应异常类的实例对象并抛出**——自动抛出
+2. 由开发人员手动创建：Exception exception = new ClassCastException();——创建好的异常对象不抛出对程序没有任何影响，和创建一个普通对象一样
+
+**异常处理机制一**
+
+1. 如果一个方法内抛出异常，该异常对象会被抛给**调用者方法中**处理。如果异常没有在调用者方法中处理，它继续被抛给这个调用方法的**上层方法**。这个过程将一直继续下去，直到异常被处理。这一过程称为捕获(catch)异常
+2. 如果一个异常回到main()方法，并且main()也不处理，则程序运行终止。
+3. 程序员通常只能处理Exception，而对Error无能为力
+
+
+
+**异常处理机制二**
+
+声明抛出异常
+
+如果一个方法(中的语句执行时)可能生成某种异常，但是并不能确定如何处理这种异常，则此方法应**显示地**声明抛出异常，表明该方法将不对这些异常进行处理，而由该方法的**调用者**负责处理
+
+<img src="Java基础.assets/image-20230130140414257.png" alt="image-20230130140414257" style="zoom:67%;" />
+
+![image-20230130140501985](Java基础.assets/image-20230130140501985.png)
+
+![image-20230130140912981](Java基础.assets/image-20230130140912981.png)
+
+重写方法不能抛出比被重写方法范围更大的异常类型。在多态的情况下，对methodA()方法的调用-异常的**捕获**按父类声明的异常处理
+
+![image-20230130141228365](Java基础.assets/image-20230130141228365.png)
+
+
+
+
+
+
+
+
+
+
+
+**异常的捕获流程**
+
+![image-20230130135230616](Java基础.assets/image-20230130135230616.png)
+
+**捕获异常的有关信息**
+
+* getMessage() 获取异常信息，返回字符串
+* printStackTrace()  获取异常类名和异常信息，以及异常出现在程序中的位置。返回值void。
+
+![image-20230130135042722](Java基础.assets/image-20230130135042722.png)
+
+**注意**
+
+1. RuntimeException类或是它的子类，这些类的异常的特点是：即使没有使用try和catch捕获，Java自己也能获，并且编译通过( 但运行时会发生异常使得程序运行终止 )
+2. 如果抛出的异常是IOException等类型的非运行时异常，则必须捕获，否则编译错误。也就是说，我们必须处理**编译时异常**，将异常进行捕捉，转化为运行时异常
+
+
+
+#### 手动抛出异常
+
+Java异常类对象除在程序执行过程中出现异常时由系统自动生成并抛出，也可根据需要使用人工创建并抛出。
+
+* 首先要生成异常类对象，然后通过throw语句实现抛出操作(提交给Java运行环境)
+
+  ```java
+  IOException e = new IOException(); 
+  throw e;
+  ```
+
+  
+
+* 可以抛出的异常必须是Throwable或其子类的实例。下面的语句在编译时将会产生语法错误
+
+  ```java
+  throw new String("want to throw");
+  ```
+
+
+
+#### 用户自定义异常类
+
+* 一般地，用户自定义异常类都是**RuntimeException的子类**
+
+* 自定义异常类通常需要编写几个**重载的构造器**
+
+* 自定义异常需要提供**serialVersionUID**
+
+* 自定义的异常通过throw抛出。
+* 自定义异常最重要的是异常类的名字，当异常出现时，可以根据名字判断异常类型
+
+用户自定义异常类MyException，用于描述数据取值范围错误信息。用户自己的异常类必须继承现有的异常类
+
+<img src="Java基础.assets/image-20230130141957676.png" alt="image-20230130141957676" style="zoom:67%;" />
+
+<img src="Java基础.assets/image-20230130142344486.png" alt="image-20230130142344486" style="zoom:67%;" />
+
+
+
+
+
+### 注解(Annotations)
+
+注解：元数据的一种形式
+
+
+
+
+
+
+
+
 
 
 
@@ -1641,6 +1828,23 @@ Arrays 是这个包下的一个类
   System.out.println(“now=”+now); 相当于
   System.out.println(“now=”+now.toString());
   ```
+
+
+
+### FileInputStream
+
+FileInputStream类的成员方法read()的功能是每次从相应的(本地为ASCII码编码格式)文件中读取一个字节，并转换成0~255之间的int型整数返回，到达文件末尾时则返回-1
+
+```java
+FileInputStream in = new FileInputStream("atguigushk.txt"); 
+int b;
+b = in.read();
+while (b != -1) {
+    System.out.print((char) b);
+    b = in.read();
+}
+in.close();
+```
 
 
 
