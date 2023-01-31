@@ -1961,3 +1961,16 @@ Spring 中 JDBCTemlate 、 HibernateTemplate 等
 动态代理（动态生成代理类）
 
 * JDK自带的动态代理，需要反射等知识
+
+
+
+# Java高级
+
+
+
+
+
+
+
+
+
