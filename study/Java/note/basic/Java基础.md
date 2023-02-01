@@ -1896,7 +1896,7 @@ class Singleton{
 *      好处：饿汉式是线程安全的
 *   
 懒汉式：好处：延迟对象的创建。
-*      目前的写法坏处：线程不安全。--->到多线程内容时，再修改
+*      目前的写法坏处：线程不安全。--->多线程时，仍可能创建多个对象
 ```
 
 #### 例子
@@ -1966,6 +1966,179 @@ Spring 中 JDBCTemlate 、 HibernateTemplate 等
 
 # Java高级
 
+## 多线程
+
+一个Java应用程序java.exe，其实至少有三个线程：main()主线程，gc()垃圾回收线程，异常处理线程。当然如果发生异常，会影响主线程
+
+Java语言的JVM允许程序运行多个线程，它通过java.lang.Thread类来体现
+
+
+
+### Thread类的特性
+
+* 每个线程都是通过某个特定Thread对象的run()方法来完成操作的，经常**把run()方法的主体称为线程体**
+* 通过该Thread对象的**start()方法来启动这个线程，而非直接调用run()**
+
+### Thread构造器
+
+![image-20230201092943726](Java基础.assets/image-20230201092943726.png)
+
+### 创建线程
+
+原理：
+
+```java
+public class Thread extends Object implements Runnable
+```
+
+**方法一：继承Thread类的方式**
+
+1)	定义子类继承Thread类
+2)	子类中**重写**Thread类中的run方法
+3)	创建Thread**子类**对象，即创建了线程对象
+4)	调用线程对象start方法：启动线程，调用run方法
+
+<img src="Java基础.assets/image-20230201093439509.png" alt="image-20230201093439509" style="zoom:80%;" />
+
+<img src="Java基础.assets/image-20230201093612783.png" alt="image-20230201093612783" style="zoom:67%;" />
+
+1.	如果自己手动调用run()方法，那么就只是普通方法（正常的函数调用），没有启动多线程模式。
+2.	run()方法由JVM调用，什么时候调用，执行的过程控制都有操作系统的CPU调度决定。
+3.	**想要启动多线程，必须调用start方法**
+4.	一个线程对象只能调用一次start()方法启动，如果重复调用了，则将抛出以上的异常“IllegalThreadStateException”
+
+
+
+**方法二：实现Runnable接口**
+
+1)	定义子类，**实现**Runnable接口
+2)	子类中**重写**Runnable接口中的run方法
+3)	通过Thread类含参构造器创建线程对象
+4)	将Runnable接口的子类对象作为实际参数传递给Thread类的构造器中
+5)	调用Thread类的start方法：开启线程，调用Runnable子类接口的run方法
+
+```java
+class myRun implements Runnable{
+    static int num = 0;
+    myRun(){
+        super();
+    }
+    @Override
+    public void run() {
+        System.out.println("t" + num + " is running");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Thread tm = new Thread(new myRun());
+        tm.start();
+    }
+}
+```
+
+
+
+**比较：继承方式和实现方式的联系与区别**
+
+<img src="Java基础.assets/image-20230201103223650.png" alt="image-20230201103223650" style="zoom:67%;" />
+
+### Thread类方法
+
+<img src="Java基础.assets/image-20230201103812566.png" alt="image-20230201103812566" style="zoom: 67%;" />
+
+![image-20230201103826246](Java基础.assets/image-20230201103826246.png)
+
+
+
+### Java的线程调度
+
+* 同优先级线程组成先进先出队列（先到先服务），使用时间片策略
+* 对高优先级，使用优先调度的抢占式策略
+
+* 线程的优先级等级
+  * MAX_PRIORITY：10
+  * MIN _PRIORITY：1
+  * NORM_PRIORITY：5
+* 涉及的方法
+  * getPriority() ：返回线程优先值
+  * setPriority(int newPriority) ：改变线程的优先级
+* 说明
+  * 线程创建时继承父线程的优先级
+  * 低优先级只是获得调度的概率低，并非一定是在高优先级线程之后才被调用
+
+**Java中的线程分为两类：一种是守护线程，一种是用户线程**
+
+* 它们在几乎每个方面都是相同的，唯一的区别是判断JVM何时离开
+* 守护线程是用来服务用户线程的，通过在start()方法前调用
+* thread.setDaemon(true)可以把一个用户线程变成一个守护线程
+* Java垃圾回收就是一个典型的守护线程
+* 若JVM中都是守护线程，当前JVM将退出
+* 形象理解：兔死狗烹，鸟尽弓藏
+
+
+
+### Java中的线程生命周期
+
+![image-20230201112515816](Java基础.assets/image-20230201112515816.png)
+
+### 线程同步
+
+#### 同步问题
+
+![image-20230201113607105](Java基础.assets/image-20230201113607105.png)
+
+**问题的原因：**
+当多条语句在操作同一个线程共享数据时，一个线程对多条语句只执行了一部分，还没有执行完，另一个线程参与进来执行。导致共享数据的错误。
+
+**解决办法：**
+对多条操作共享数据的语句，只能让一个线程都执行完，在执行过程中，其他线程不可以参与执行。
+
+#### 解决方法
+
+<img src="Java基础.assets/image-20230201140657764.png" alt="image-20230201140657764" style="zoom:67%;" />
+
+![image-20230201141026337](Java基础.assets/image-20230201141026337.png)
+
+<img src="Java基础.assets/image-20230201141341889.png" alt="image-20230201141341889" style="zoom:80%;" />
+
+
+
+<img src="Java基础.assets/image-20230201141807388.png" alt="image-20230201141807388" style="zoom:80%;" />
+
+```java
+//Program of synchronized method by using annonymous class  
+class Table{  
+ synchronized void printTable(int n){//synchronized method  
+   for(int i=1;i<=5;i++){  
+     System.out.println(n*i);  
+     try{  
+      Thread.sleep(400);  
+     }catch(Exception e){System.out.println(e);}  
+   }  
+  
+ }  
+}  
+  
+public class TestSynchronization3{  
+	public static void main(String args[]){  
+		final Table obj = new Table();//only one object  
+  
+		Thread t1=new Thread(){  
+			public void run(){  
+				obj.printTable(5);  
+			}   
+        };
+		Thread t2=new Thread(){  
+			public void run(){  
+				obj.printTable(100);  
+			}  
+        };
+	t1.start();  
+	t2.start();  
+	}  
+}  
+```
 
 
 
@@ -1973,4 +2146,83 @@ Spring 中 JDBCTemlate 、 HibernateTemplate 等
 
 
 
+#### 死锁的产生
 
+<img src="Java基础.assets/image-20230201143704036.png" alt="image-20230201143704036" style="zoom:150%;" />
+
+#### 锁
+
+* 从JDK 5.0开始，Java提供了更强大的线程同步机制——通过**显式定义同步锁**对象来实现同步。同步锁使用Lock对象充当
+* java.util.concurrent.locks.Lock接口是控制多个线程对共享资源进行访问的工具。锁提供了对共享资源的独占访问，每次只能有一个线程对Lock对象加锁，线程开始访问共享资源之前应先获得Lock对象
+* ReentrantLock 类实现了 Lock ，它拥有与 synchronized 相同的并发性和内存语义，在实现线程安全的控制中，比较常用的是ReentrantLock，可以显式加锁、释放锁。
+
+![image-20230201144433790](Java基础.assets/image-20230201144433790.png)
+
+**为什么？因为finally捕捉所有异常后，一定要释放锁**
+
+
+
+#### synchronized VS Lock 
+
+1.	Lock是显式锁（手动开启和关闭锁，别忘记关闭锁），synchronized是隐式锁，出了作用域自动释放
+2.	Lock只有代码块锁，synchronized有代码块锁和方法锁
+3.	使用Lock锁，JVM将花费较少的时间来调度线程，性能更好。并且具有更好的扩展性（提供更多的子类）
+
+**优先使用顺序：**
+Lock > 同步代码块(已经进入了方法体，分配了相应资源) > 同步方法（在方法体之外）
+
+
+
+### 线程的通信
+
+![image-20230201150303532](Java基础.assets/image-20230201150303532.png)
+
+![image-20230201152618505](Java基础.assets/image-20230201152618505.png)
+
+<img src="Java基础.assets/image-20230201152733538.png" alt="image-20230201152733538" style="zoom:67%;" />
+
+#### 生产者消费者问题
+
+![image-20230201153603732](Java基础.assets/image-20230201153603732.png)
+
+![image-20230201153611105](Java基础.assets/image-20230201153611105.png)
+
+![image-20230201153620679](Java基础.assets/image-20230201153620679.png)
+
+![image-20230201153628371](Java基础.assets/image-20230201153628371.png)
+
+
+
+### JDK5.0新增线程创建方式
+
+**新增方式一：实现Callable接口**
+
+* 与使用Runnable相比， Callable功能更强大些
+
+* 相比run()方法，可以有返回值
+
+* 方法可以抛出异常
+
+* 支持泛型的返回值
+
+* 需要借助FutureTask类，比如获取返回结果
+
+  Future接口
+
+  * 可以对具体Runnable、Callable任务的执行结果进行取消、查询是否完成、获取结果等
+  * FutrueTask是Futrue接口的唯一的实现
+  * FutureTask 同时实现了Runnable, Future接口。它既可以作为Runnable被线程执行，又可以作为Future得到Callable的返回值
+
+**新增方式二：使用线程池**
+
+* 背景：经常创建和销毁、使用量特别大的资源，比如并发情况下的线程，对性能影响很大
+* 思路：提前创建好多个线程，放入线程池中，使用时直接获取，使用完放回池中。可以避免频繁创建销毁、实现重复利用。类似生活中的公共交通工具
+* 好处：
+  * 提高响应速度（减少了创建新线程的时间）
+  * 降低资源消耗（重复利用线程池中线程，不需要每次都创建）
+  * 便于线程管理
+  * corePoolSize：核心池的大小
+  * maximumPoolSize：最大线程数
+  * keepAliveTime：线程没有任务时最多保持多长时间后会终止
+
+![image-20230201160931580](Java基础.assets/image-20230201160931580.png)
