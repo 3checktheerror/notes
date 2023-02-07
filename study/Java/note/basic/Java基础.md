@@ -2846,9 +2846,98 @@ StringBuilder 和 StringBuffer 非常类似,均代表可变的字符序列 而�
 
 ### 时间日期API（JDK 8 之前）
 
+UTC(Coordinated Universal Time)
+GMT(Greenwich Mean Time)
+CST(Central Standard Time)
+
+![image-20230206091908108](Java基础.assets/image-20230206091908108.png)
+
+
+
+![image-20230206092323145](Java基础.assets/image-20230206092323145.png)
+
+![image-20230206092415120](Java基础.assets/image-20230206092415120.png)
+
+![image-20230206095659413](Java基础.assets/image-20230206095659413.png)
+
+```java
+
+
+public class Main {
+    public static void main(String[] args) {
+        Date date = new Date();
+        SimpleDateFormat formater = new SimpleDateFormat();
+        System.out.println(date);
+        System.out.println(formater.format(date));
+        SimpleDateFormat formater2 = new SimpleDateFormat("yyyy年MM月dd日 EEE HH:mm:ss");
+        try{
+            Date data2 = formater2.parse("2002年10月22日 星期三 08:08:08");
+            System.out.println(data2);
+        }
+        catch (ParseException e){
+            e.printStackTrace();
+        }
+
+    }
+}
+//output
+Mon Feb 06 09:49:18 HKT 2023
+2023/2/6 09:49
+Tue Oct 22 08:08:08 HKT 2002
+```
+
+![image-20230206095554484](Java基础.assets/image-20230206095554484.png)
+
+![image-20230206095537686](Java基础.assets/image-20230206095537686.png)
+
+
+
 
 
 ### 时间日期API（JDK 8 之后）
+
+**JDK 8之前日期时间API存在的问题**
+
+可变性：像日期和时间这样的类应该是不可变的
+偏移性：Date 中的年份是从 1900 开始的，而月份都从 0 开始
+格式化：格式化只对Date 有用， Calendar 则不行
+此外，它们也**不是线程安全**的；不能处理闰秒等
+
+![image-20230206100558501](Java基础.assets/image-20230206100558501.png)
+
+![image-20230206100752550](Java基础.assets/image-20230206100752550.png)
+
+![image-20230206100850988](Java基础.assets/image-20230206100850988.png)
+
+
+
+![image-20230206101103854](Java基础.assets/image-20230206101103854.png)
+
+![image-20230206101119901](Java基础.assets/image-20230206101119901.png)
+
+![image-20230206101546242](Java基础.assets/image-20230206101546242.png)
+
+![image-20230206101639165](Java基础.assets/image-20230206101639165.png)
+
+​	
+
+**几个栗子**
+
+
+
+![image-20230206111001927](Java基础.assets/image-20230206111001927.png)
+
+![image-20230206111012175](Java基础.assets/image-20230206111012175.png)
+
+![image-20230206111019392](Java基础.assets/image-20230206111019392.png)
+
+![image-20230206111028679](Java基础.assets/image-20230206111028679.png)
+
+![image-20230206111151765](Java基础.assets/image-20230206111151765.png)
+
+
+
+
 
 
 
@@ -2856,7 +2945,56 @@ StringBuilder 和 StringBuffer 非常类似,均代表可变的字符序列 而�
 
 
 
+在Java中经常会涉及到对象数组的排序问题，那么就涉及到对象之间的比较问题
+
+
+
+Java实现对象排序的方式有两种：
+
+* 自然排序：java.lang.Comparable
+* 定制排序：java.util.Comparator
+
+
+
+#### 自然排序
+
+![image-20230206111449216](Java基础.assets/image-20230206111449216.png)
+
+![image-20230206111701594](Java基础.assets/image-20230206111701594.png)
+
+![image-20230206112100809](Java基础.assets/image-20230206112100809.png)
+
+![image-20230206112111405](Java基础.assets/image-20230206112111405.png)
+
+
+
+
+
+#### 定制排序
+
+![image-20230206112820714](Java基础.assets/image-20230206112820714.png)
+
+![image-20230206112836465](Java基础.assets/image-20230206112836465.png)
+
+
+
+
+
+
+
 ### System类
+
+![image-20230206115050138](Java基础.assets/image-20230206115050138.png)
+
+![image-20230206115217749](Java基础.assets/image-20230206115217749.png)
+
+![image-20230206115409968](Java基础.assets/image-20230206115409968.png)
+
+
+
+
+
+
 
 
 
@@ -2864,5 +3002,130 @@ StringBuilder 和 StringBuffer 非常类似,均代表可变的字符序列 而�
 
 
 
+![image-20230206115515085](Java基础.assets/image-20230206115515085.png)
+
+
+
 ### BigInteger与BigDecimal
 
+![image-20230206115744467](Java基础.assets/image-20230206115744467.png)
+
+![image-20230206115735570](Java基础.assets/image-20230206115735570.png)
+
+![image-20230206115857838](Java基础.assets/image-20230206115857838.png)
+
+![image-20230206115907029](Java基础.assets/image-20230206115907029.png)
+
+
+
+## 枚举类和注解
+
+
+
+### 枚举类
+
+#### 基本
+
+
+
+![image-20230207130231647](Java基础.assets/image-20230207130231647.png)
+
+![image-20230207131745422](Java基础.assets/image-20230207131745422.png)
+
+
+
+#### 自定义枚举类
+
+1.	**私有化**类的构造器，保证不能在类的外部创建其对象（类似单例设计模式）
+2.	在类的内部创建枚举类的实例。声明为：**public static final**
+3.	对象如果有实例变量（属性），应该声明为 **private final**，并在**构造器中初始化**
+
+![image-20230207130710919](Java基础.assets/image-20230207130710919.png)
+
+
+
+#### 使用enum定义枚举类
+
+![image-20230207130929128](Java基础.assets/image-20230207130929128.png)
+
+![image-20230207131115079](Java基础.assets/image-20230207131115079.png)
+
+
+
+#### 枚举类的方法
+
+![image-20230207131615100](Java基础.assets/image-20230207131615100.png)
+
+
+
+![image-20230207131707087](Java基础.assets/image-20230207131707087.png)
+
+
+
+
+
+
+
+### 注解（Annotation）
+
+#### 概述
+
+![image-20230207131902338](Java基础.assets/image-20230207131902338.png)
+
+![image-20230207132056856](Java基础.assets/image-20230207132056856.png)
+
+
+
+#### 示例
+
+![image-20230207132402336](Java基础.assets/image-20230207132402336.png)
+
+![image-20230207132453342](Java基础.assets/image-20230207132453342.png)
+
+![image-20230207132632604](Java基础.assets/image-20230207132632604.png)
+
+<img src="Java基础.assets/image-20230207132726831.png" alt="image-20230207132726831" style="zoom: 67%;" />
+
+![image-20230207132839895](Java基础.assets/image-20230207132839895.png)
+
+![image-20230207133317650](Java基础.assets/image-20230207133317650.png)
+
+
+
+#### 自定义注解
+
+![image-20230207133342806](Java基础.assets/image-20230207133342806.png)
+
+![image-20230207133827955](Java基础.assets/image-20230207133827955.png)
+
+
+
+#### 元注解
+
+<img src="Java基础.assets/image-20230207140850515.png" alt="image-20230207140850515" style="zoom:67%;" />
+
+![image-20230207141034567](Java基础.assets/image-20230207141034567.png)
+
+<img src="Java基础.assets/image-20230207141559688.png" alt="image-20230207141559688" style="zoom:67%;" />
+
+**上面括号内的写法说明RetentionPolicy.SOURCE有默认值**
+
+![image-20230207142121782](Java基础.assets/image-20230207142121782.png)
+
+![image-20230207142418733](Java基础.assets/image-20230207142418733.png)
+
+#### 利用反射来获取注解信息
+
+![image-20230207142652402](Java基础.assets/image-20230207142652402.png)
+
+
+
+#### JDK8中注解新特性
+
+**可重复注解和可用于类型的注解**
+
+![image-20230207143135003](Java基础.assets/image-20230207143135003.png)
+
+![image-20230207143342059](Java基础.assets/image-20230207143342059.png)
+
+![image-20230207143518998](Java基础.assets/image-20230207143518998.png)
