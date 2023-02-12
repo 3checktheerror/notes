@@ -3188,23 +3188,217 @@ Map**接口**：双列数据，保存具有映射关系“key-value对”的集�
 
 ### Iterator迭代器接口
 
+Iterator 对象称为迭代器 (设计模式的一种 )，主要用于**遍历 Collection** 集合中的元素。
+
+Collection接口继承了java.lang.Iterable**接口**，该接口有一个iterator()方法，那么所有实现了Collection接口的集合类都有一个iterator()方法，用以返回一个实现了Iterator接口的对象
+
+Iterator **仅用于遍历集合**，Iterator 本身并不提供承装对象的能力。如果需要创建Iterator 对象，则必须有一个被迭代的集合
+
+集合对象每次调用iterator()方法都得到**一个全新的迭代器对象**，**默认游标都在集合的第一个元素之前**
+
+![image-20230210092952155](Java基础.assets/image-20230210092952155.png)
+
+![image-20230210093406269](Java基础.assets/image-20230210093406269.png)
+
+![image-20230210093952280](Java基础.assets/image-20230210093952280.png)
+
+![image-20230210094130979](Java基础.assets/image-20230210094130979.png)
+
 
 
 
 
 ### Collection子接口：List
 
+* 鉴于Java中数组用来存储数据的局限性，我们通常使用List替代数组
+* List集合类中元素**有序、且可重复**，集合中的每个元素都有其对应的顺序索引
+* List容器中的元素都对应一个整数型的**序号**记载其在容器中的位置，可以根据序号存取容器中的元素
+* JDK API中List接口的实现类常用的有：ArrayList、LinkedList和Vector。
 
+![image-20230210095223969](Java基础.assets/image-20230210095223969.png)
+
+
+
+#### **List实现类之一： ArrayList**
+
+* ArrayList 是 List 接口的典型实现类、主要实现类
+* 本质上，ArrayList是对象引用的一个”变长”数组
+* ArrayList的JDK1.8之前与之后的实现区别？
+  * JDK1.7：ArrayList像**饿汉式**，直接创建一个初始容量为10的数组
+  * JDK1.8：ArrayList像**懒汉式**，一开始创建一个长度为0的数组，当添加第一个元素时再创建一个始容量为10的数组
+* Arrays.asList(…) 方法返回的 List 集合，既不是ArrayList 实例，也不是Vector 实例。Arrays.asList(…)  返回值是一个固定长度的 List 集合
+
+![image-20230210095825439](Java基础.assets/image-20230210095825439.png)
+
+
+
+#### **List实现类之二： LinkedList**
+
+对于**频繁的插入或删除**元素的操作，建议使用LinkedList 类，效率较高
+
+新增方法：
+
+* void addFirst(Object obj)
+* void addLast(Object obj)
+* Object getFirst()
+* Object getLast()
+* Object removeFirst()
+* Object removeLast()
+
+![image-20230210100751475](Java基础.assets/image-20230210100751475.png)
+
+
+
+#### **List实现类之三： Vector**
+
+
+
+* Vector 是一个古老的集合，JDK1.0就有了。大多数操作与ArrayList相同，区别之处在于Vector是**线程安全**的
+* 在各种list中**，最好把ArrayList作为缺省选择。当插入、删除频繁时，使用LinkedList；Vector总是比ArrayList慢，所以尽量避免使用**
+* 新增方法：
+  * void addElement(Object obj)
+  * void insertElementAt(Object obj,int index)
+  * void setElementAt(Object obj,int index)
+  * void removeElement(Object obj)
+  * void removeAllElements()
+
+
+
+### 各种实现类的比较
+
+![image-20230210102022529](Java基础.assets/image-20230210102022529.png)
 
 
 
 ### Collection子接口：Set
 
+* Set接口是Collection的子接口，set接口没有提供额外的方法
+* Set 集合不允许包含相同的元素，如果试把两个相同的元素加入同一个Set 集合中，则添加操作失败
+* Set 判断两个对象是否相同不是使用 == 运算符，而是根据 equals() 方法
 
 
 
+#### **Set实现类之一： HashSet**
 
-### Collection工具类
+* HashSet 是 Set 接口的典型实现，大多数时候使用 Set 集合时都使用这个实现类
+* HashSet 按 Hash 算法来存储集合中的元素，因此具有很好的存取、查找、删除性能
+* HashSet 具有以下特点：
+  * **不能保证元素的排列顺序**
+  * **HashSet 不是线程安全的**
+  * **集合元素可以是 null**
+* HashSet 集合判断两个元素相等的标准：两个对象通过 hashCode() 方法比较相等，并且两个对象的 equals() 方法返回值也相等
+* 对于存放在Set容器中的**对象**，**对应的类一定要重写equals()和hashCode(Object obj)方法**，**以实现对象相等规则。即：“相等的对象必须具有相等的散列码”。**
+
+
+
+**向HashSet中添加元素的过程：**
+
+* 当向 HashSet 集合中存入一个元素时，HashSet **会调用该对象的 hashCode() 方法**来得到该对象的 hashCode 值，然后根据 hashCode 值，通过某种散列函数决定该对象在 HashSet 底层数组中的存储位置。（这个散列函数会与底层数组的长度相计算得到在数组中的下标，并且这种散列函数计算还尽可能保证能均匀存储元素，越是散列分布，该散列函数设计的越好）
+* 如果两个元素的hashCode()值相等，会再继续调用equals方法，如果equals方法结果为true，添加失败；如果为false，那么会保存该元素，但是该数组的位置已经有元素了，那么会通过**链表**的方式继续链接。
+
+```
+我们向HashSet中添加元素a,首先调用元素a所在类的hashCode()方法，计算元素a的哈希值，
+此哈希值接着通过某种算法计算出在HashSet底层数组中的存放位置（即为：索引位置），判断
+数组此位置上是否已经有元素：
+    如果此位置上没有其他元素，则元素a添加成功。 --->情况1
+    如果此位置上有其他元素b(或以链表形式存在的多个元素），则比较元素a与元素b的hash值：
+        如果hash值不相同，则元素a添加成功。--->情况2
+        如果hash值相同，进而需要调用元素a所在类的equals()方法：
+               equals()返回true,元素a添加失败
+               equals()返回false,则元素a添加成功。--->情况3
+
+对于添加成功的情况2和情况3而言：元素a 与已经存在指定索引位置上数据以链表的方式存储。
+jdk 7 :元素a放到数组中，指向原来的元素。
+jdk 8 :原来的元素在数组中，指向元素a
+总结：七上八下(指针向上指还是向下指)
+```
+
+![image-20230210103837026](Java基础.assets/image-20230210103837026.png)
+
+
+
+**重写hashCode() 方法的基本原则**
+
+* 在程序运行时，同一个对象多次调用 hashCode() 方法应该返回相同的值
+* 当两个对象的 equals() 方法比较返回 true 时，这两个对象的 hashCode()方法的返回值也应相等
+* 对象中用作 equals() 方法比较的 Field，都应该用来计算 hashCode 值
+
+**以自定义的Customer类为例，何时需要重写equals()？**
+
+* 当一个类有自己特有的“逻辑相等”概念,当改写equals()的时候，总是要改写hashCode()，根据一个类的equals方法（改写后），两个截然不同的实例有可能在逻辑上是相等的，但是，根据Object.hashCode()方法，它们仅仅是两个对象
+* 因此，违反了“**相等（equal）的对象必须具有相等的散列码**”
+* 结论：复写equals方法的时候一般都需要同时复写hashCode方法。通常参与计算hashCode的对象的属性也应该参与到equals()中进行计算
+
+**以Eclipse/IDEA为例，在自定义类中可以调用工具自动重写equals和hashCode。问题：为什么用Eclipse/IDEA复写hashCode方法，有31这个数字？**
+
+* 选择系数的时候要选择尽量大的系数。因为如果计算出来的hash地址越大，所谓的 “冲突”就越少，查找起来效率也会提高。（减少冲突）
+* 并且31只占用5bits,相乘造成数据溢出的概率较小
+* 31可以 由i*31== (i<<5)-1来表示,现在很多虚拟机里面都有做相关优化。（提高算法效率）
+* 31是一个素数，素数作用就是如果我用一个数字来乘以这个素数，那么最终出来的结果只能被素数本身和被乘数还有1来整除！(减少冲突)
+
+
+
+#### Set实现类之二：LinkedHashSet
+
+* LinkedHashSet 是 HashSet 的子类
+* LinkedHashSet 根据元素的 hashCode 值来决定元素的存储位置，但它同时使用双向链表维护元素的次序，这使得元素看起来是以**插入顺序**保存的
+* LinkedHashSet插入性能略低于 HashSet，但在迭代访问 Set 里的全部元素时有很好的性能
+* LinkedHashSet 不允许集合元素重复
+* 保证在遍历map元素时，可以按照添加的顺序实现遍历
+
+![image-20230210105826574](Java基础.assets/image-20230210105826574.png)
+
+
+
+#### Set实现类之三：TreeSet
+
+* TreeSet 是 SortedSet 接口的实现类，TreeSet 可以确保集合元素处于**排序状态**
+* TreeSet底层使用**红黑树**结构存储数据
+* 新增的方法如下： (了解)
+  	Comparator comparator()
+  	Object first()
+  	Object last()
+  	Object lower(Object e)
+  	Object higher(Object e)
+  	SortedSet subSet(fromElement, toElement)
+  	SortedSet headSet(toElement)
+  	SortedSet tailSet(fromElement)
+* TreeSet 两种排序方法：**自然排序和定制排序**。默认情况下，TreeSet 采用自然排序
+
+![image-20230210110230121](Java基础.assets/image-20230210110230121.png)
+
+
+
+**自然排序**
+
+* 自然排序：TreeSet 会调用集合元素的 compareTo(Object obj) 方法来比较元素之间的大小关系，然后将集合元素按升序(默认情况)排列
+* **如果试图把一个对象添加到 TreeSet 时，则该对象的类必须实现 Comparable接口**
+  	实现 Comparable 的类必须**实现 compareTo(Object obj) 方法**，两个对象即通过compareTo(Object obj) 方法的返回值来比较大小
+* Comparable 的典型实现：
+  	BigDecimal、BigInteger 以及所有的数值型对应的包装类：按它们对应的数值大小进行比较
+  	Character：按字符的 unicode值来进行比较
+  	Boolean：true 对应的包装类实例大于 false 对应的包装类实例
+  	String：按字符串中字符的 unicode 值进行比较
+  	Date、Time：后边的时间、日期比前面的时间、日期大
+
+* 向 TreeSet 中添加元素时，只有第一个元素无须比较compareTo()方法，后面添加的所有元素都会调用compareTo()方法进行比较。
+* **因为只有相同类的两个实例才会比较大小，所以向 TreeSet 中添加的应该是同一个类的对象**
+* 对于 TreeSet 集合而言，它判断两个对象是否相等的唯一标准是：两个对象通过 compareTo(Object obj) 方法比较返回值
+* 当需要把一个对象放入 TreeSet 中，重写该对象对应的 equals() 方法时，应保证该方法与 compareTo(Object obj) 方法有一致的结果：如果两个对象通过equals() 方法比较返回 true，则通过 compareTo(Object obj) 方法比较应返回 0。否则，让人难以理解
+
+**定制排序**
+
+* TreeSet的自然排序要求元素所属的类实现Comparable接口，如果元素所属的类**没有实现**Comparable接口，或**不希望按照升序**(默认情况)的方式排列元素或希望按照其它属性大小进行排序，则考虑使用定制排序。定制排序，通过Comparator接口来实现。需要重写compare(T o1,T o2)方法
+* 利用int compare(T o1,T o2)方法，比较o1和o2的大小：如果方法返回正整数，则表示o1大于o2；如果返回0，表示相等；返回负整数，表示o1小于o2
+* 要实现定制排序，**需要将实现Comparator接口的实例作为形参传递给TreeSet的构造器**
+* 此时，仍然只能向TreeSet中添加类型相同的对象。否则发生ClassCastException异常
+* **使用定制排序判断两个元素相等的标准是：通过Comparator比较两个元素返回了0**
+
+example
+
+![image-20230210113839527](Java基础.assets/image-20230210113839527.png)
+
+
 
 
 
@@ -3214,11 +3408,177 @@ Map**接口**：双列数据，保存具有映射关系“key-value对”的集�
 
 ![image-20230208104348268](Java基础.assets/image-20230208104348268.png)
 
+* Map与Collection并列存在。用于保存具有**映射关系**的数据:key-value
+* Map 中的 key 和 value 都可以是任何引用类型的数据
+* Map 中的 **key 用Set来存放，不允许重复**，即同一个Map 对象所对应的类，**须重写hashCode()和equals()方法**
+* 常用String类作为Map的“键”
+* key 和 value 之间存在单向一对一关系，即通过指定的key 总能找到唯一的、确定的 value
+* Map接口的常用实现类：HashMap、TreeMap、LinkedHashMap和Properties。其中，**HashMap是 Map 接口使用频率最高的实现类**
+
+![image-20230210114138434](Java基础.assets/image-20230210114138434.png)
+
+![image-20230210114154582](Java基础.assets/image-20230210114154582.png)
+
+
+
+#### **Map实现类之一： HashMap**
+
+* HashMap是 Map 接口使用频率最高的实现类
+* 允许使用null键和null值，与HashSet一样，不保证映射的顺序
+* 所有的key构成的集合是Set:无序的、不可重复的。所以，**key所在的类要重写：equals()和hashCode()**
+* 所有的value构成的集合是Collection:无序的、可以重复的。所以，**value所在的类要重写：equals()**
+* **一个key-value构成一个entry**
+* 所有的entry构成的集合是Set:无序的、不可重复的
+* **HashMap 判断两个 key 相等的标准是**：两个 key 通过 equals() 方法返回 true， hashCode 值也相等
+* **HashMap 判断两个 value相等的标准是**：两个 value 通过 equals() 方法返回 true
+
+![image-20230211092343273](Java基础.assets/image-20230211092343273.png)
+
+![image-20230211092355927](Java基础.assets/image-20230211092355927.png)
+
+**HashMap源码中的重要常量**
+
+DEFAULT_INITIAL_CAPACITY : HashMap的默认容量，16
+MAXIMUM_CAPACITY ： HashMap的最大支持容量，2^30
+DEFAULT_LOAD_FACTOR：HashMap的默认加载因子
+TREEIFY_THRESHOLD：Bucket中链表长度大于该默认值，转化为红黑树UNTREEIFY_THRESHOLD：Bucket中红黑树存储的Node小于该默认值，转化为链表MIN_TREEIFY_CAPACITY：桶中的Node被树化时最小的hash表容量。（当桶中Node的数量大到需要变红黑树时，若hash表容量小于MIN_TREEIFY_CAPACITY时，此时应执resiz扩容操作这个MIN_TREEIFY_CAPACITY的值至少是TREEIFY_THRESHOLD的4倍）
+table：存储元素的数组，总是2的n次幂
+entrySet：存储具体元素的集
+size：HashMap中存储的键值对的数量
+modCount：HashMap扩容和结构改变的次数。
+threshold：扩容的临界值，=容量*填充因子
+loadFactor：填充因子
+
+
+
+**HahMap存储过程的分析**
+
+* HashMap的内部存储结构其实是**数组和链表**的结合。当实例化一个HashMap时，系统会创建一个长度为Capacity的Entry数组，这个长度在哈希表中被称为容量(Capacity)，在这个数组中可以存放元素的位置我们称之为“桶”(bucket)，每个bucket都有自己的索引，系统可以根据索引快速的查找bucket中的元素
+
+* 每个bucket中存储一个元素，即**一个Entry对象**，但每一个Entry对象可以带一个引用变量，用于指向下一个元素，因此，在一个桶中，就有可能生成一个Entry链。而且新添加的元素作为链表的head
+  **添加元素的过程：**
+
+  向HashMap中添加entry1(key，value)，需要首先计算entry1中key的哈希值(**根据key所在类的hashCode()计算得到**)，此哈希值**经过处理**以后，得到在底层Entry[]数组中要存储的位置i。如果位置i上没有元素，则entry1直接添加成功。如果位置i上已经存在entry2(或还有链表存在的entry3，entry4)，则需要通过循环的方法，依次比较entry1中key和其他的entry。如果彼此hash值**不同**，则直接添加成功。如果hash值不同，**继续**比较二者是否equals。如果返回值为true，**则使用entry1的value去替换equals为true的entry的value**。
+
+  如果遍历一遍以后，发现所有的equals返回都为false,则entry1仍可添加成功。entry1指向原有的entry元素
+
+  
+  
+  首先，调用key1所在**类的hashCode()**计算key1哈希值，此哈希值经过**某种算法计算**以后，得到在Entry数组中的存放位置。
+  *      如果此位置上的数据为空，此时的key1-value1添加成功。 ----情况1
+  *      如果此位置上的数据不为空，(意味着此位置上存在一个或多个数据(以链表形式存在)),比较key1和已经存在的一个或多个数据的哈希值：
+  *              如果key1的哈希值与已经存在的数据的哈希值都不相同，此时key1-value1添加成功。----情况2
+  *      如果key1的哈希值和已经存在的某一个数据(key2-value2)的哈希值相同，继续比较：调用key1所在类的equals(key2)方法，比较：
+         *                      如果equals()返回false:此时key1-value1添加成功。----情况3
+         *      如果equals()返回true:使用value1替换value2。
+  *       补充：关于情况2和情况3：此时key1-value1和原来的数据以链表的方式存储。
+  
+  
+
+**HashMap的扩容**
+
+当HashMap中的元素越来越多的时候，hash冲突的几率也就越来越高，因为数组的长度是固定的。所以为了提高查询的效率，就要对HashMap的数组进行扩容，而在HashMap数组扩容之后，**最消耗性能的点就出现了：原数组中的数据必须重新计算其在新数组中的位置，并放进去，这就是resize**
+
+
+
+**HashMap什么时候进行扩容呢？**
+
+当HashMap中的元素个数超过**数组大小** ( **数组总大小length**, 不是数组中个数size) loadFactor 时 ， 就 会 进 行 数 组 扩 容 ， loadFactor 的默认值(DEFAULT_LOAD_FACTOR)为0.75，这是一个折中的取值。也就是说，默认情况下，数组大小(DEFAULT_INITIAL_CAPACITY)为16，那么当HashMap中元素个数超过16\*0.75=12（这个值就是代码中的threshold值，也叫做临界值）的时候，就把数组的大小扩展为 2*16=32，即扩大一倍，**然后重新计算每个元素在数组中的位置**，而这是一个非常消耗性能的操作，所以如果我们已经预知HashMap中元素的个数，那么**预设元素个数能够有效提高HashMap的性能**
+
+当HashMap中的其中一个链的对象个数如果达到了8个，此时如果capacity没有达到64，那么HashMap会先扩容解决，如果已经达到了64，那么这个链会变成树，结点类型由Node变成TreeNode类型。当然，如果当映射关系被移除后，下次resize方法时判断树的结点个数低于6个，也会把树再转为链表
+
+
+
+**HashMap的存储结构：JDK 1.8**
+
+* HashMap的内部存储结构其实是**数组+链表+树**的结合。当实例化一个HashMap时，会初始化initialCapacity和loadFactor，在put第一对映射关系时，系统会创建一个长度为initialCapacity的Node数组，这个长度在哈希表中被称为容量(Capacity)，在这个数组中可以存放元素的位置我们称之为 “桶”(bucket)，每个bucket都有自己的索引，系统可以根据索引快速的查找bucket中的元素
+* 每个bucket中存储一个元素，即一个Node对象，但每一个Node对象可以带一个引用变量next，用于指向下一个元素，因此，在一个桶中，就有可能生成一个Node链。也可能是一个一个TreeNode对象，每一个TreeNode对象可以有两个叶子结点left和right，因此，在一个桶中，就有可能生成一个TreeNode树。而新添加的元素作为链表的last，或树的叶子结点
+
+
+
+**关于映射关系的key是否可以修改？answer：不要修改**
+
+映射关系存储到HashMap中会存储key的hash值，这样就不用在每次查找时重新计算每一个Entry或Node（TreeNode）的hash值了，因此如果已经put到Map中的映射关系，再修改key的属性，而这个属性又参与hashcode值的计算，那么会导致匹配不上
+
+
+
+**总结：JDK1.8相较于之前的变化**
+
+1.	HashMap map = new HashMap(); //默认情况下，先不创建长度为16的数组, 当首次调用map.put()时，再创建长度为16的数组
+3.	数组为Node类型，在jdk7中称为Entry类型
+4.	形成链表结构时，新添加的key-value对在链表的**尾部**（七上八下）（jdk7:新的元素指向旧的元素。jdk8：旧的元素指向新的元素）
+5.	当数组指定**索引位置的链表长度**>8时，且map中的数组的长度> 64时，此索引位置上的所有key-value对使用红黑树进行存储
+
+
+
+**负载因子值的大小，对HashMap有什么影响**
+
+* 负载因子的大小决定了HashMap的数据密度
+* **负载因子越大密度越大，发生碰撞的几率越高**，数组中的链表越容易长,造成查询或插入时的比较次数增多，性能会下降
+* **负载因子越小，就越容易触发扩容**，数据密度也越小，意味着发生碰撞的几率越小，数组中的链表也就越短，查询和插入时比较的次数也越小，性能会更高。但是会浪费一定的内容空间。而且经常扩容也会影响性能，建议初始化预设大一点的空间
+* 按照其他语言的参考及研究经验，会考虑将负载因子设置为0.7~0.75，此时平均检索长度接近于常数
+
+
+
+#### Map实现类之二：LinkedHashMap
+
+* LinkedHashMap 是 HashMap 的子类
+* 在HashMap存储结构的基础上，使用了一对**双向链表**来记录添加元素的顺序
+* 与LinkedHashSet类似，LinkedHashMap 可以维护 Map 的迭代顺序：迭代顺序与 Key-Value 对的插入顺序一致
+
+![image-20230211101758983](Java基础.assets/image-20230211101758983.png)
+
+
+
+#### Map实现类之三：TreeMap
+
+* TreeMap存储 Key-Value 对时，需要根据 key-value 对进行排序。 TreeMap 可以保证所有的 Key-Value 对处于**有序**状态
+* TreeMap底层使用**红黑树**结构存储数据
+* TreeMap 的 **Key 的排序**：
+  	自然排序：TreeMap 的所有的 Key 必须实现 Comparable 接口，而且所有的 Key 应该是同一个类的对象，否则将会抛出 ClasssCastException
+  	定制排序：创建 TreeMap 时，传入一个 Comparator 对象，该对象负责对TreeMap 中的所有 key 进行排序。**此时不需要 Map 的 Key 实现Comparable 接口**
+* TreeMap判断两个key相等的标准：两个key通过compareTo()方法或者compare()方法返回0
+
+
+
+#### Map实现类之四：Hashtable
+
+* Hashtable是个古老的 Map 实现类，JDK1.0就提供了。不同于HashMap， Hashtable是线程安全的
+* Hashtable实现原理和HashMap相同。**底层都使用哈希表结构**，查询速度快，很多情况下可以互用
+* 与HashMap不同，Hashtable 不允许使用 null 作为 key 和 value
+* 与HashMap一样，Hashtable 也不能保证其中 Key-Value 对的顺序
+* Hashtable判断两个key相等、两个value相等的标准，与HashMap一致
+
+
+
+#### Map实现类之五：Properties
+
+* Properties 类是 Hashtable 的子类，常用来处理**配置文件**。key和value都是String类型
+* 由于属性文件里的 key、value 都是字符串类型，所以 Properties 里的 key和 value **都是字符串类型**
+* 存取数据时，建议使用setProperty(String key,String value)方法和getProperty(String key)方法
 
 
 
 
 
+### Collection工具类
+
+**类比：操作数组的工具类：Arrays**
+
+* Collections 是一个操作 Set、List 和 Map 等集合的工具类
+* Collections 中提供了一系列静态的方法对集合元素进行排序、查询和修改等操作，还提供了对集合对象设置不可变、对集合对象实现同步控制等方法
+
+* 排序操作：（**均为static方法）**
+  	reverse(List)：反转 List 中元素的顺序
+  	shuffle(List)：对 List 集合元素进行随机排序
+  	sort(List)：根据元素的自然顺序对指定 List 集合元素按升序排序
+  	sort(List，Comparator)：根据指定的 Comparator 产生的顺序对 List 集合元素进行排序
+  	swap(List，int， int)：将指定 list 集合中的 i 处元素和 j 处元素进行交换
 
 
 
+#### Collections常用方法
+
+![image-20230211103236813](Java基础.assets/image-20230211103236813.png)
+
+![image-20230211103342169](Java基础.assets/image-20230211103342169.png)
