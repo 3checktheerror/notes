@@ -1,5 +1,21 @@
 
 
+# 更改块代码颜色
+
+theme下的github.css  231行
+
+```c
+code {
+    background-color: #f9f4f4;
+    padding: 0 2px 0 2px;
+    color:#c7254E;//这个
+}
+```
+
+
+
+
+
 
 
 # 页内跳转

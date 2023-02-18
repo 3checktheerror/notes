@@ -1,7 +1,5 @@
 
 
-
-
 # Java基础
 
 [toc]
@@ -3144,6 +3142,8 @@ Java实现对象排序的方式有两种：
 
 Java集合就像容器，可以**动态的**把多个对象的引用放入容器中
 
+如果实例化时，没有指明泛型的类型。默认类型为java.lang.Object类型
+
 ### 使用场景
 
 JavaScript Object Notation (JSON) is a standard text-based format for representing structured data based on JavaScript object syntax. It is commonly used for **transmitting data in web applications** 
@@ -3582,3 +3582,816 @@ loadFactor：填充因子
 ![image-20230211103236813](Java基础.assets/image-20230211103236813.png)
 
 ![image-20230211103342169](Java基础.assets/image-20230211103342169.png)
+
+
+
+
+
+## 泛型
+
+那么为什么要有泛型呢，直接Object不是也可以存储数据吗？![image-20230214125600159](Java基础.assets/image-20230214125600159.png)
+
+![image-20230214125638068](Java基础.assets/image-20230214125638068.png)
+
+
+
+### 集合中的泛型
+
+<img src="Java基础.assets/image-20230214130510060.png" alt="image-20230214130510060" style="zoom: 80%;" />
+
+<img src="Java基础.assets/image-20230214130517838.png" alt="image-20230214130517838" style="zoom: 80%;" />
+
+
+
+### 自定义泛型
+
+![image-20230214130732066](Java基础.assets/image-20230214130732066.png)
+
+<img src="Java基础.assets/image-20230214130911586.png" alt="image-20230214130911586" style="zoom:67%;" />
+
+体会：使用泛型的主要优点是能够在编译时而不是在运行时检测错误
+
+
+
+
+
+#### 泛型类和泛型接口
+
+1. 泛型类可能有多个参数，此时应将多个参数一起放在尖括号内。比如：<E1,E2,E3>
+
+2.	泛型类的构造器如下：public GenericClass(){}。
+  而下面是错误的：public GenericClass<E>(){}
+  
+3. 实例化后，操作原来泛型位置的结构必须与指定的泛型类型一致。
+
+4. 泛型不同的引用不能相互赋值。
+
+5. 尽管在编译时ArrayList<String>和ArrayList<Integer>是两种类型，但是，在运行时只有一个ArrayList被加载到JVM中。
+
+6. 泛型如果不指定，将被擦除，泛型对应的类型均按照Object处理，但不等价于Object。经验：泛型要使用一路都用。要不用，一路都不要用。
+
+7. 如果泛型结构是一个接口或抽象类，则不可创建泛型类的对象。
+
+8. jdk1.7，泛型的简化操作：ArrayList<Fruit> flist = new ArrayList<>();
+
+9. 泛型的指定中不能使用基本数据类型，可以使用包装类替换
+
+10. **泛型不同的引用不能相互赋值**
+
+11. 在类/接口上声明的泛型，在本类或本接口中即代表某种类型，可以作为非静态属性的类型、非静态方法的参数类型、非静态方法的返回值类型。**但在静态方法中不能使用类的泛型**
+
+12. **泛型方法，可以声明为静态的**。原因：**泛型参数是在调用方法时确定的**，并非在实例化类时确定
+
+    ```java
+    public static <E>  List<E> copyFromArrayToList(E[] arr){
+            ArrayList<E> list = new ArrayList<>();
+            for(E e : arr){
+                list.add(e);
+            }
+            return list;
+    }
+    ```
+
+    
+
+13. 异常类不能是泛型的
+
+14. 不能使用new E[]。但是可以：E[] elements = (E[])new Object[capacity];
+   参考：ArrayList源码中声明：Object[] elementData，而非泛型参数类型数组。
+
+15. 父类有泛型，子类可以选择保留泛型也可以选择指定泛型类型：
+    * 子类不保留父类的泛型：按需实现
+      	没有类型 擦除
+      	具体类型
+    * 子类保留父类的泛型：泛型子类
+      	全部保留
+      	部分保留
+    * 结论：子类必须是“富二代”，子类除了指定或保留父类的泛型，还可以增加自己的泛型
+
+![image-20230214131730894](Java基础.assets/image-20230214131730894.png)
+
+![image-20230214132129392](Java基础.assets/image-20230214132129392.png)
+
+![image-20230214132153298](Java基础.assets/image-20230214132153298.png)
+
+
+
+#### 泛型方法
+
+![image-20230214132434568](Java基础.assets/image-20230214132434568.png)
+
+![image-20230214132905995](Java基础.assets/image-20230214132905995.png)
+
+![image-20230214133054085](Java基础.assets/image-20230214133054085.png)
+
+
+
+### 继承中的泛型
+
+如果B是A的一个子类型（子类或者子接口），而G是具有泛型声明的类或接口，**G<B>并不是G<A>的子类型**！
+比如：String是Object的子类，但是List<String >并不是List<Object>的子类
+
+**类A是类B的父类，A<G> 是 B<G> 的父类**
+
+
+
+### 通配符
+
+1. 使用类型通配符：？
+  比如：List<?>，Map<?,?>
+  List<?>是List<String>、List<Object>等各种泛型List的父类。
+
+2. **读取List<?>的对象list中的元素时，永远是安全的**，因为不管list的真实类型是什么，它包含的都是Object。
+
+3. 写入list中的元素时，不行。因为我们不知道c的元素类型，我们不能向其中添加对象。
+
+  * 唯一的例外是null，它是所有类型的成员。
+
+4.	**将任意元素加入到其中不是类型安全的**：Collection<?> c = new ArrayList<String>();
+   c.add(new Object()); // 编译时错误
+
+   因为我们不知道c的元素类型，我们不能向其中添加对象。**add方法有类型参数E作为集合的元素类型。我们传给add的任何参数都必须是一个未知类型的子类。**因为我们不知道那是什么类型，所以我们无法传任何东西进去。
+
+5.	唯一的例外的是null，它是所有类型的成员
+
+6. **类A是类B的父类，G<A>和G<B>是没有关系的，二者共同的父类是：G<?>**
+
+7. 另一方面，我们可以调用get()方法并使用其返回值。返回值是一个未知的类型，但是我们知道，它总是一个Object。
+
+<img src="Java基础.assets/image-20230214140010789.png" alt="image-20230214140010789" style="zoom: 80%;" />
+
+**通配符的使用限制**
+
+<img src="Java基础.assets/image-20230214140144381.png" alt="image-20230214140144381" style="zoom:67%;" />
+
+**有限制的通配符**
+
+![image-20230214140434152](Java基础.assets/image-20230214140434152.png)
+
+![image-20230214140807022](Java基础.assets/image-20230214140807022.png)
+
+![image-20230214142140032](Java基础.assets/image-20230214142140032.png)
+
+因为不知道list的类型，而调用list.add方法时，传入其中的类型要是**未知类型的子类**，我们不知道这是上面类型，不能传进去任何东西
+
+**泛型嵌套**
+
+![image-20230214143321269](Java基础.assets/image-20230214143321269.png)
+
+
+
+## IO流
+
+### 基本知识
+
+#### File 类的使用
+
+* java.io.File类：文件和文件目录路径的抽象表示形式，与平台无关
+* File 能新建、删除、重命名文件和目录，**但 File 不能访问文件内容本身**。**如果需要访问文件内容本身，则需要使用输入/输出流**
+* 想要在Java程序中表示一个真实存在的**文件或目录**，那么必须有一个File对象，但是Java程序中的一个File对象，可能没有一个真实存在的文件或目录
+* File对象可以作为参数传递给流的构造器
+
+#### 常用构造器
+
+* **public File(String pathname）**
+  以pathname 为路径创建 File 对象，可以是**绝对路径或者相对路径** ，如果pathname 是相对路径，则默认的当前路径在系统属性 user.dir 中存储
+* **public File(String parent,String child)**
+  以parent为父路径，child为子路径创建File对象 
+* **public File(File parent,String child)**
+  根据一个父File对象和子文件路径创建File对象
+
+#### 路径分隔符
+
+路径分隔符和系统有关：windows和DOS系统默认使用“\”来表示，UNIX和URL使用“/”来表示
+
+Java程序支持跨平台运行，因此路径分隔符要慎用
+为了解决这个隐患，File类提供了一个常量：
+public  static final String separator。根据操作系统，动态的提供分隔符
+
+```java
+File file1 = new File("d:\\atguigu\\info.txt");
+File file2 = new File("d:" + File.separator + "atguigu" + File.separator + "info.txt"); File file3 = new File("d:/atguigu");
+```
+
+#### 常用方法
+
+```java
+//获取
+public String getAbsolutePath()：获取绝对路径
+public String getPath() ：获取路径
+public String getName() ：获取名称
+public String getParent()：获取上层文件目录路径。若无，返回null
+public long length() ：获取文件长度（即：字节数）。不能获取目录的长度。
+public long lastModified() ：获取最后一次的修改时间，毫秒值
+public String[] list() ：获取指定目录下的所有文件或者文件目录的名称数组
+public File[] listFiles() ：获取指定目录下的所有文件或者文件目录的File数组
+//重命名
+public boolean renameTo(File dest):把文件重命名为指定的文件路径
+//判断
+public boolean isDirectory()：判断是否是文件目录
+public boolean isFile() ：判断是否是文件
+public boolean exists() ：判断是否存在
+public boolean canRead() ：判断是否可读
+public boolean canWrite() ：判断是否可写
+public boolean isHidden() ：判断是否隐藏
+//创建
+public boolean createNewFile() ：创建文件。若文件存在，则不创建，返回false
+public boolean mkdir() ：创建文件目录。如果此文件目录存在，就不创建了。如果此文件目录的上层目录不存在，也不创建。
+public boolean mkdirs() ：创建文件目录。如果上层文件目录不存在，一并创建
+    
+注意事项：如果你创建文件或者文件目录没有写盘符路径，那么，默认在项目路径下。
+    
+//删除
+public boolean delete()：删除文件或者文件夹
+删除注意事项：
+Java中的删除不走回收站。
+要删除一个文件目录，请注意该文件目录内不能包含文件或者文件目录
+```
+
+![image-20230215101554179](Java基础.assets/image-20230215101554179.png)
+
+![image-20230215101725207](Java基础.assets/image-20230215101725207.png)
+
+
+
+#### 流的分类
+
+* 按操作数据单位不同分为：字节流(8 bit)，字符流(16 bit)
+* 按数据流的流向不同分为：输入流，输出流
+* 按流的角色的不同分为：节点流，处理流
+
+<img src="Java基础.assets/image-20230215102216439.png" alt="image-20230215102216439" style="zoom:67%;" />
+
+1.	Java的IO流共涉及40多个类，实际上非常规则，都是从如下4个抽象基类派生的。
+2.	由这四个类**派生出来的子类名称**都是以其**父类名作为子类名后缀**。
+
+![image-20230215102244017](Java基础.assets/image-20230215102244017.png)
+
+![image-20230215102500218](Java基础.assets/image-20230215102500218.png)
+
+<img src="Java基础.assets/image-20230215102700239.png" alt="image-20230215102700239" style="zoom:80%;" />
+
+**InputStream & Reader**
+
+* InputStream 和 Reader 是所有输入流的基类
+* InputStream（典型实现：FileInputStream）
+  	int read()
+  	int read(byte[] b)
+  	int read(byte[] b, int off, int len)
+* Reader（典型实现：FileReader）
+  	int read()
+  	int read(char [] c)
+  	int read(char [] c, int off, int len)
+* **程序中打开的文件 IO 资源不属于内存里的资源，垃圾回收机制无法回收该资源，所以应该显式关闭文件 IO 资源**
+* FileInputStream 从文件系统中的某个文件中获得输入字节。FileInputStream用于读取非文本数据之类的**原始字节流**。要读取**字符流**，需要使用 FileReader
+
+
+
+**InputStream**
+
+* int read()
+  从输入流中读取数据的下一个**字节**。返回0 到255 范围内的int 字节值。如果因为已经到达流末尾而没有可用的字节，则返回值-1
+* int read(byte[] b)
+  从此输入流中将最多 b.length 个**字节**的数据读入一个 byte 数组中。如果因为已经到达流末尾而没有可用的字节，则返回值 -1。否则以整数形式返回实际读取的字节数
+* int read(byte[] b, int off,int len)
+  将输入流中最多 len 个数据**字节**读入 byte 数组。尝试读取 len 个字节，但读取的字节也可能小于该值。以整数形式返回实际读取的字节数。如果因为流位于文件末尾而没有可用的字节，则返回值-1
+* public void close() throws IOException
+  关闭此输入流并释放与该流关联的所有系统资源
+
+**Reader**
+
+* int read()
+  读取单个**字符**。作为整数读取的字符，范围在 0 到 65535 之间 (0x00-0xffff)（2个字节的Unicode码），如已到达流的末尾，则返回-1
+
+* int read(char[] cbuf)
+  将字符读入数组。如果已到达流的末尾，则返回 -1。否则返回本次读取的**字符数**
+
+* int read(char[] cbuf,int off,int len)
+  将字符读入数组的某一部分。存到数组cbuf中，从off处开始存储，最多读len个字符。如果已到达流的末尾则返回-1。否则返回本次读取的字符数
+
+* public void close() throws IOException
+
+  关闭此输入流并释放与该流关联的所有系统资源
+
+**OutputStream & Writer**
+
+* OutputStream 和 Writer 也非常相似：
+  	void write(int b/int c);
+  	void write(byte[] b/char[] cbuf);
+  	void write(byte[] b/char[] buff, int off, int len);
+  	void flush();
+  	void close(); 需要先刷新，再关闭此流
+* 因为字符流直接以字符作为操作单位，所以 Writer 可以用字符串来替换字符数组，即以 String 对象作为参数
+  	void write(String str);
+  	void write(String str, int off, int len);
+* FileOutputStream 从文件系统中的某个文件中获得输出字节。FileOutputStream用于写出非文本数据之类的原始字节流。要写出字符流，需要使用 FileWriter
+
+
+
+**OutputStream**
+
+* void write(int b)
+  将**指定的字节**写入此输出流。write 的常规协定是：向输出流写入一个字节。要写入的字节是参数b的**八个低位**。b 的24 个高位将被忽略。即写入0~255范围的
+* void write(byte[] b)
+  将b.length 个字节从指定的byte 数组写入此输出流。write(b) 的常规协定是：应该与调用write(b, 0, b.length) 的效果完全相同
+* void write(byte[] b,int off,int len)
+  将指定byte 数组中从偏移量off 开始的len 个字节写入此输出流
+* public void flush()throws IOException
+  刷新此输出流并强制写出所有缓冲的输出字节，调用此方法指示应将这些字节立即写入它们预期的目标
+* public void close() throws IOException
+  关闭此输出流并释放与该流关联的所有系统资源。
+
+
+
+**Writer**
+
+* void write(int c)
+  写入单个字符。要写入的字符包含在给定整数值的 16 个低位中，16 高位被忽略。 即写入0 到65535 之间的Unicode码
+* void write(char[] cbuf)
+  写入字符数组
+* void write(char[] cbuf,int off,int len)
+  写入字符数组的某一部分。从off开始，写入len个字符
+* void write(String str)
+  写入字符串
+* void write(String str,int off,int len)
+  写入字符串的某一部分
+* void flush()
+  刷新该流的缓冲，则立即将它们写入预期目标
+* public void close() throws IOException
+  关闭此输出流并释放与该流关联的所有系统资源。
+
+
+
+
+
+### 文件流（节点流）
+
+<img src="Java基础.assets/image-20230215104555880.png" alt="image-20230215104555880" style="zoom:67%;" />
+
+![image-20230215104608745](Java基础.assets/image-20230215104608745.png)
+
+<img src="Java基础.assets/image-20230215105205345.png" alt="image-20230215105205345" style="zoom:67%;" />
+
+<img src="Java基础.assets/image-20230215105215513.png" alt="image-20230215105215513" style="zoom:67%;" />
+
+* 定义文件路径时，注意：可以用“/”或者“\\”
+* 在**写入**一个文件时，如果使用构造器FileOutputStream(file)，则目录下有同名文件将被覆盖
+* 如果使用构造器**FileOutputStream(file,true)**，则目录下的同名文件**不会被覆盖，在文件内容末尾追加内容**
+* 在**读取**文件时，必须保证该文件已存在，否则报异常
+* 字节流操作字节，比如：.mp3，.avi，.rmvb，mp4，.jpg，.doc，.ppt
+* 字符流操作字符，只能操作普通文本文件。最常见的文本文件：.txt，.java，.c，.cpp 等语言的源代码。尤其注意.doc,excel,ppt这些不是文本文件。
+
+
+
+### 缓冲流
+
+为了提高数据读写的速度，Java API提供了带缓冲功能的流类，在使用这些流类时，会创建一个内部缓冲区数组，缺省使用8192个字节(8Kb)的缓冲区
+
+<img src="Java基础.assets/image-20230216093354079.png" alt="image-20230216093354079" style="zoom:50%;" />
+
+缓冲流要“套接”在相应的节点流之上，根据数据操作单位可以把缓冲流分为：
+
+* BufferedInputStream 和 BufferedOutputStream
+* BufferedReader 和 BufferedWriter
+
+
+
+1. 当读取数据时，数据按块读入缓冲区，**其后的读操作则直接访问缓冲区**
+2. 当使用BufferedInputStream读取**字节**文件时，BufferedInputStream会一次性从文件中读取8192个(8Kb)，存在缓冲区中，直到缓冲区装满了，才重新从文件中读取下一个8192个字节数组
+3. 向流中写入字节时，不会直接写到文件，**先写到缓冲区中直到缓冲区写满**， BufferedOutputStream才会把缓冲区中的数据一次性写到文件里。使用方法flush()可以强制将缓冲区的内容全部写入输出流
+4. **关闭流的顺序和打开流的顺序相反**。只要关闭最外层流即可，关闭最外层流也会相应关闭内层节点流
+5. flush()方法的使用：手动将buffer中内容写入文件
+6. **如果是带缓冲区的流对象的close()方法，不但会关闭流**，还会在关闭流之前刷新缓冲区，关闭后不能再写出
+
+![image-20230216093916400](Java基础.assets/image-20230216093916400.png)
+
+![image-20230216094103598](Java基础.assets/image-20230216094103598.png)
+
+
+
+### 转换流
+
+**InputStreamReader**
+
+* 实现将**字节**的输入流按指定字符集**转换为字符**的输入流
+
+* 需要和InputStream“套接”
+
+<img src="Java基础.assets/image-20230216094636284.png" alt="image-20230216094636284" style="zoom: 67%;" />
+
+**OutputStreamWriter**
+
+* 实现将字符的输出流按指定字符集转换为字节的输出流
+* 需要和OutputStream“套接”
+
+<img src="Java基础.assets/image-20230216094843548.png" alt="image-20230216094843548" style="zoom:67%;" />
+
+
+
+<img src="Java基础.assets/image-20230216094922068.png" alt="image-20230216094922068" style="zoom:67%;" />
+
+### 多种流的复合使用案例
+
+![image-20230216095254524](Java基础.assets/image-20230216095254524.png)
+
+
+
+### 字符编码
+
+* ASCII：美国标准信息交换码：用一个字节的7位可以表示
+* ISO8859-1：拉丁码表。欧洲码表：用一个字节的8位表示
+* GB2312：中国的中文编码表。最多两个字节编码所有字符
+* GBK：中国的中文编码表升级，融合了更多的中文文字符号。最多两个字节编码
+* Unicode：国际标准码，融合了目前人类使用的所有字符。为每个字符分配唯一的字符码。所有的文字都用**两个字节**来表示
+* UTF-8：变长的编码方式，可用1-4个字节来表示一个字符
+
+![image-20230216095755497](Java基础.assets/image-20230216095755497.png)
+
+* Unicode不完美，这里就有三个问题
+  * 英文字母只用一个字节表示就够了，第二个问题是如何才能区别Unicode和ASCII？
+  * 计算机怎么知道两个字节表示一个符号，而不是分别表示两个符号呢？
+  * 如果和GBK等双字节编码方式一样，用最高位是1或0表示两个字节和一个字节，就少了很多值无法用于表示字符，不够表示所有字符
+* 面向传输的众多 UTF（UCS Transfer Format）标准出现了，顾名思义，UTF-8就是每次8个位传输数据，而UTF-16就是每次16个位。这是为传输而设计的编码，并使编码无国界，这样就可以显示全世界上所有文化的字符了
+* Unicode**只是定义了一个庞大的、全球通用的字符集**，并为每个字符规定了唯一确定的**编号**，**具体存储成什么样的字节流，取决于字符编码方案。**推荐的Unicode编码是UTF-8和UTF-16
+
+![image-20230216100807984](Java基础.assets/image-20230216100807984.png)
+
+![image-20230216101212442](Java基础.assets/image-20230216101212442.png)
+
+编码：字符串->字节数组
+解码：字节数组->字符串
+转换流的编码应用
+
+* 可以将字符按指定编码格式存储
+* 可以对文本数据按指定编码格式来解读
+* 指定编码表的动作由构造器完成
+
+
+
+### 标准输入输出流
+
+* System.in和System.out分别代表了系统标准的输入和输出设备
+* 默认输入设备是：键盘，输出设备是：显示器
+* System.in的类型是InputStream
+* System.out的类型是PrintStream，其是OutputStream的子类FilterOutputStream 的子类
+* 重定向：通过**System类**的setIn，setOut方法对默认设备进行变
+  	public static void setIn(InputStream in)
+  	public static void setOut(PrintStream out)
+
+![image-20230216101726428](Java基础.assets/image-20230216101726428.png)
+
+### 打印流
+
+实现将基本数据类型的数据格式**转化为字节/字符串**输出
+
+**打印流：PrintStream和PrintWriter**
+
+* 提供了一系列重载的print()和println()方法，用于多种数据类型的输出
+* PrintStream和PrintWriter的输出不会抛出IOException异常
+* PrintStream和PrintWriter有自动flush功能
+* PrintStream 打印的所有字符**都使用平台的默认字符编码转换为字节**。在需要写入字符而不是写入字节的情况下，应该使用 PrintWriter 类
+* **System.out返回的是PrintStream的实例**
+
+![image-20230216104417151](Java基础.assets/image-20230216104417151.png)
+
+
+
+### 数据流
+
+* 为了方便地操作Java语言的基本数据类型和String的数据，可以使用数据流
+
+* 数据流有两个类：(用于读取和写出基本数据类型、String类的数据）
+
+  	**DataInputStream 和 DataOutputStream**
+  	**分别“套接”在 InputStream 和 OutputStream 子类的流上**
+
+<img src="Java基础.assets/image-20230216105014129.png" alt="image-20230216105014129" style="zoom: 67%;" />
+
+![image-20230216105116494](Java基础.assets/image-20230216105116494.png)
+
+![image-20230216105133939](Java基础.assets/image-20230216105133939.png)
+
+
+
+### 对象流
+
+**ObjectInputStream 和 OjbectOutputSteam**
+
+* 用于存储和读取**基本数据类型**数据或**对象**的处理流。它的强大之处就是可以把 Java 中的对象写入到数据源中，也能把对象从数据源中还原回来
+* 序列化： 用 ObjectOutputStream 类 保存 基本类型数据或对象的机制
+  反序列化： 用 ObjectInputStream 类 读取 基本类型数据或对象的机制
+* ObjectOutputStream 和 ObjectInputStream 不能序列化 static 和 transient 修饰的成员变量
+
+* 对象序列化机制允许把内存中的Java对象转换成平台无关的二进制流，从而允许把这种二进制流持久地保存在磁盘上，或通过网络将这种二进制流传输到另一个网络节点。//当其它程序获取了这种二进制流，就可以恢复成原来的Java对象
+* 序列化的好处在于可将任何**实现了Serializable接口的对象**转化为字节数据，使其在保存和传输时可被还原
+* 序列化是 RMI（Remote Method Invoke – 远程方法调用）过程的参数和返回值都必须实现的机制，而 RMI 是 JavaEE 的基础。因此序列化机制是JavaEE 平台的基础
+* 如果需要让某个对象支持序列化机制，则必须让对象所属的类及其属性是可序列化的，为了让某个类是可序列化的，**该类必须实现如下两个接口之一**。否则，会抛出NotSerializableException异常
+  	Serializable
+  	Externalizable
+
+**对象的序列化**
+
+* 凡是实现**Serializable接口**的类都有一个表示序列化版本标识符的静态变量：
+  	private static final long serialVersionUID;
+  	serialVersionUID用来表明类的不同版本间的兼容性。简言之，其目的是以序列化对象进行版本控制，有关各版本反序列化时是否兼容。
+  	如果类没有显示定义这个静态常量，它的值是Java运行时环境根据类的内部细节自动生成的。**若类的实例变量做了修改，serialVersionUID 可能发生变化。故建议，显式声明**
+* 简单来说，**Java的序列化机制是通过在运行时判断类的serialVersionUID来验证版本一致性的**。在进行反序列化时，JVM会把传来的字节流中的serialVersionUID与本地相应实体类的serialVersionUID进行比较，如果相同就认为是一致的，可以进行反序列化，否则就会出现序列化版本不一致的异常(InvalidCastException)
+
+
+
+**使用对象流序列化对象**
+
+* 若某个类实现了 Serializable 接口，该类的对象就是可序列化的：
+  	创建一个 ObjectOutputStream
+  	调用 ObjectOutputStream 对象的 writeObject(对象) 方法输出可序列化对象
+  	注意写出一次，操作flush()一次
+* 反序列化
+  	创建一个 ObjectInputStream
+  	调用 readObject() 方法读取流中的对象
+* 强调：如果某个类的属性不是基本数据类型或 String  类型，而是另一个引用类型，那么这个引用类型必须是可序列化的，否则拥有该类型的Field 的类也不能序列化
+
+![image-20230216111133796](Java基础.assets/image-20230216111133796.png)
+
+
+
+**谈谈你对java.io.Serializable接口的理解，我们知道它用于序列化，是空方法接口，还有其它认识吗？**
+
+* 实现了Serializable接口的对象，可将它们转换成一系列字节，并可在以后完全恢复回原来的样子。**这一过程亦可通过网络进行。这意味着序列化机制能自动补偿操作系统间的差异。**换句话说，可以先在Windows机器上创建一个对象，对其序列化，然后通过网络发给一台Unix机器，然后在那里准确无误地重新“装配”。不必关心数据在不同机器上如何表示，也不必关心字节的顺序或者其他任何细节
+* 由于**大部分作为参数的类如String、Integer等都实现了java.io.Serializable的接口**，也可以利用多态的性质，作为参数使接口更灵活。
+
+
+
+### 随机存取文件流
+
+**RandomAccessFile 类**
+
+* RandomAccessFile 声明在java.io包下，但直接继承于java.lang.Object类。并且它实现了DataInput、DataOutput这两个接口，也就意味着这个类既可以读也可以写
+* RandomAccessFile 类**支持 “随机访问” 的方式，程序可以直接跳到文件的任意地方来读、写文件**
+  	支持只访问文件的部分内容
+  	可以向已存在的文件后追加内容
+* RandomAccessFile 对象包含一个记录指针，用以标示当前读写处的位置。 RandomAccessFile 类对象可以自由移动记录指针：
+  	long getFilePointer()：获取文件记录指针的当前位置
+  	void seek(long pos)：将文件记录指针定位到 pos 位置
+
+* 构造器
+  public RandomAccessFile(File file , String mode)
+  public RandomAccessFile(String name, String mode)
+* 创建 RandomAccessFile 类实例需要指定一个 mode 参数，该参数指定 RandomAccessFile 的访问模式：
+  r：以只读方式打开
+  rw ：打开以便读取和写入
+  rwd： 打开以便读取和 写入；同步文件内容的更新
+  rws ：打开以便读取和 写入； 同步文件内容和元数据的更新
+* 如果模式为只读 r 。则不会创建文件，而是会去读取一个已经存在的文件，如果读取的文件不存在则会出现异常。 如果模式为 rw 读写。如果文件不存在则会去创建文件，如果存在则不会创建。
+
+我们可以用RandomAccessFile这个类，来实现一个**多线程断点下载**的功能，用过下载工具的朋友们都知道，下载前都会建立两个临时文件，一个是与被下载文件大小相同的空文件，另一个是记录文件指针的位置文件，每次暂停的时候，都会保存上一次的指针，然后断点下载的时候，会继续从上一次的地方下载，从而实现断点下载或上传的功能
+
+![image-20230216112017198](Java基础.assets/image-20230216112017198.png)
+
+<img src="Java基础.assets/image-20230216112029449.png" alt="image-20230216112029449" style="zoom:67%;" />
+
+![image-20230216112045693](Java基础.assets/image-20230216112045693.png)
+
+
+
+### 两套NIO
+
+Java NIO (New IO，Non-Blocking IO)是从Java 1.4版本开始引入的一套新的IO API，可以替代标准的Java IO API。NIO与原来的IO有同样的作用和目的，但是使用的方式完全不同，**NIO支持面向缓冲区的(IO是面向流的)、基于通道的IO操作**。**NIO将以更加高效的方式进行文件的读写操作**。
+
+![image-20230216113455701](Java基础.assets/image-20230216113455701.png)
+
+随着 JDK 7 的发布，Java对NIO进行了极大的扩展，增强了对文件处理和文件系统特性的支持，以至于我们称他们为 NIO.2。因为 NIO 提供的一些功能，NIO已经成为文件处理中越来越重要的部分。
+
+
+
+![image-20230216113752710](Java基础.assets/image-20230216113752710.png)
+
+![image-20230216113932544](Java基础.assets/image-20230216113932544.png)
+
+![image-20230216114005778](Java基础.assets/image-20230216114005778.png)
+
+![image-20230216114014337](Java基础.assets/image-20230216114014337.png)
+
+![image-20230216114022994](Java基础.assets/image-20230216114022994.png)
+
+
+
+## 网络编程
+
+#### 基本
+
+联网的底层细节被隐藏在 Java 的本机安装系统里，由 JVM 进行控制。并且 Java 实现了一个跨平台的网络库，程序员面对的是一个统一的网络编程环境
+
+**端口号：**
+
+公认端口：0~1023。被预先定义的服务通信占用（如：HTTP占用端口80，FTP占用端口21，Telnet占用端口23）
+
+注册端口：1024~49151。分配给用户进程或应用程序。（如：Tomcat占用端口8080，MySQL占用端口3306，Oracle占用端口1521等）
+
+动态/私有端口：49152~65535
+
+**Sokect：**
+
+端口号与IP地址的组合得出一个网络套接字：Socket
+
+**Windows下的本机host（主机）：**
+
+在 C:\Windows\System32\drivers\etc\host ，里面储存着IP地址到域名的映射
+
+
+
+### InetAddress
+
+InetAddress类主要表示IP地址，两个子类：Inet4Address、Inet6Address
+
+InetAddress 类对象含有一个 Internet 主机地址的域名和IP 地址：www.google.com 和 8.8.8.8
+
+<img src="Java基础.assets/image-20230218102549524.png" alt="image-20230218102549524" style="zoom: 67%;" />
+
+* InetAddress类**没有提供公共的构造器**，而是提供了如下几个**静态方法**来获取InetAddress实例
+  	public static InetAddress getLocalHost()
+  	public static InetAddress getByName(String host)
+* InetAddress提供了如下几个常用的方法
+  	public String getHostAddress()：返回 IP 地址字符串（以文本表现形式）
+  	public String getHostName()：获取此 IP 地址的主机名
+  	public boolean isReachable(int timeout)：测试是否可以达到该地址
+
+<img src="Java基础.assets/image-20230218103446618.png" alt="image-20230218103446618" style="zoom: 67%;" />
+
+
+
+### Socket 套接字
+
+**分类**
+流套接字（ stream socket ）：使用 TCP 提供可依赖的字节流服务
+数据报套接字（ datagram socket ）：使用 UDP 提供“尽力而为”的数据报服务
+
+**组成**
+
+源目的IP地址，源目的端口号——四元组
+
+**构造器和方法**
+
+可以看出，通过套接字发送信息实际上就是向文件写入数据，文件包含在流中
+
+每个套接字都和对应的输入输出流相关联
+
+![image-20230218104707029](Java基础.assets/image-20230218104707029.png)
+
+
+
+### TCP网络编程
+
+<img src="Java基础.assets/image-20230218105752019.png" alt="image-20230218105752019" style="zoom:67%;" />
+
+* 创建Socket：根据指定服务端的 IP 地址或端口号构造 Socket 类对象。若服务器端响应，则建立客户端到服务器的通信线路。若连接失败，会出现异常
+* 打开连接到Socket 的输入/出流：使用 getInputStream()方法获得输入流，使用getOutputStream()方法获得输出流，进行数据传输
+* 按照一定的协议对Socket  进行读/写操作：通过输入流读取服务器放入线路的信息（但不能读取自己放入线路的信息），通过输出流将信息写入线程
+* 关闭Socket：断开客户端到服务器的连接，释放线路
+
+
+
+1. 客户端创建Socket对象
+
+   * 客户端程序可以使用Socket类创建对象，**创建的同时会自动向服务器方发起连接**。
+
+     Socket的构造器是：
+     	`Socket(String host,int port)throws UnknownHostException,IOException`：向服务器(域名是host。端口号为port)发起TCP连接，若成功，则创建Socket对象，否则抛出异常。
+     	`Socket(InetAddress address,int port)throws IOException`：根据InetAddress对象所表示的IP地址以及端口号port发起连接
+
+   * 客户端建立socketAtClient对象的过程就是向服务器发出套接字连接请求
+
+     ```java
+     Socket s = new Socket(“192.168.40.165”,9999); 
+     OutputStream out = s.getOutputStream(); 
+     out.write(" hello".getBytes());
+     s.close();
+     ```
+
+   * **服务器程序的工作过程包含以下四个基本的步骤**
+
+     1. 调用 ServerSocket(int port) ：创建一个服务器端套接字，并绑定到指定端口上。用于监听客户端的请求
+     2. 调用 accept()：监听连接请求，如果客户端请求连接，则接受连接，返回通信套接字对象
+     3. 调用 该Socket类对象的 getOutputStream() 和 getInputStream ()：获取输出流和输入流，开始网络数据的发送和接收
+     4. 关闭ServerSocket和Socket对象：客户端访问结束，关闭通信套接字
+
+2. 服务器建立 ServerSocket 对象
+
+   * ServerSocket 对象负责等待客户端请求建立套接字连接，类似邮局某个窗口中的业务员。也就是说，**服务器必须事先建立一个等待客户请求建立套接字连接的ServerSocket对象（欢迎套接字）**
+
+   * 所谓“接收”客户的套接字请求，就是accept()方法会返回一个 Socket 对象
+
+     ```java
+     ServerSocket ss = new ServerSocket(9999);
+     Socket s = ss.accept ();
+     InputStream in = s.getInputStream();
+     byte[] buf = new byte[1024];
+     int num = in.read(buf);
+     String str = new String(buf,0,num);
+     System.out.println(s.getInetAddress().toString()+”:”+str);
+     s.close();
+     ss.close();
+     ```
+
+     ![image-20230218112001585](Java基础.assets/image-20230218112001585.png)
+
+
+
+### UDP网络编程
+
+* 类 DatagramSocket 和 DatagramPacket 实现了基于 UDP 协议网络程序
+* UDP数据报通过数据报套接字 DatagramSocket 发送和接收，系统不保证UDP数据报一定能够安全送到目的地，也不能确定什么时候可以抵达
+* DatagramPacket 对象封装了UDP数据报，在数据报中包含了`发送端的IP地址和端口号以及接收端的IP地址和端口号`
+* UDP协议中**每个数据报都给出了完整的地址信息，因此无须建立发送方和接收方的连接**。如同发快递包裹一样
+
+
+
+**常用方法**
+
+![image-20230218114115326](Java基础.assets/image-20230218114115326.png)
+
+<img src="Java基础.assets/image-20230218114135250.png" alt="image-20230218114135250" style="zoom:80%;" />
+
+
+
+**UDP通信流程**
+
+1.	DatagramSocket与DatagramPacket
+2.	建立发送端，接收端
+3.	建立数据包
+4.	调用Socket的发送、接收方法
+5.	关闭Socket
+
+* **发送端**
+
+  <img src="Java基础.assets/image-20230218115000151.png" alt="image-20230218115000151" style="zoom:67%;" />
+
+* **接收端**
+
+  <img src="Java基础.assets/image-20230218115400291.png" alt="image-20230218115400291" style="zoom:67%;" />
+
+
+
+### URL编程
+
+**URL类**
+
+URL的基本结构由5部分组成：
+`<传输协议>://<主机名>:<端口号>/<文件名>#片段名?参数列表`
+
+* 例如:
+  http://192.168.1.100:8080/helloworld/index.jsp#a?username=shkstart&password=123
+* \#片段名：即锚点，例如看小说，直接定位到章节
+* 参数列表格式：参数名=参数值&参数名=参数值....
+
+
+
+**URL类构造器**
+
+* 为了表示URL，java.net 中实现了类 URL。我们可以通过下面的构造器来初始化一个 URL 对象：
+  	public URL (String spec)：通过一个表示URL地址的字符串可以构造一个URL对象。例如：URL url = new URL ("http://www. atguigu.com/");
+  	public URL(URL context, String spec)：通过基 URL 和相对 URL 构造一个 URL 对象。例如：URL downloadUrl = new URL(url, “download.html")
+  	public URL(String protocol, String host, String file); 例如：new URL("http","www.atguigu.com", “download. html");
+  	public URL(String protocol, String host, int port, String file); 例如: URL gamelan = new URL("http", "www.atguigu.com", 80, “download.html");
+
+* URL类的构造器都声明抛出非运行时异常，必须要对这一异常进行处理，通常是用 try-catch 语句进行捕获。
+
+  一 个 URL 对象生成后，其**属性是不能被改变的**，但可以通过它给定的方法来获取这些属性：
+  public String getProtocol ( ) 获取该 URL 的协议名
+  public String getHost ( ) 获取 该 URL 的主机名
+  public String getPort ( ) 获取 该 URL 的端口号
+  public String getPath ( ) 获取 该 URL 的文件路径
+  public String getFile ( ) 获取 该 URL 的文件名
+  public String getQuery ( ) 获取 该 URL 的查询名
+
+  <img src="Java基础.assets/image-20230218120434047.png" alt="image-20230218120434047" style="zoom:67%;" />
+
+
+
+**针对HTTP 协议的 URLConnection 类**
+
+* URL 的方法 openStream ()()：能从网络上读取数据
+* 若希望输出数据，例如向服务器端的 CGI （Common GatewayInterface），是用户浏览器和服务器端的应用程序进行连接的接口）程序发送一些数据，则必须先与 URL 建立连接，然后才能对其进行读写，此时需要使用URLConnection 
+* URLConnection ：表示到 URL 所引用的远程对象的连接。当与一个 URL 建立连接时，首先要在一个 URL 对象上通过方法 openConnection () 生成对应的 URLConnection对象。如果连接过程失败，将产生 IOException
+  * URL netchinaren = new URL ("http://www.atguigu.com/index.shtml");
+  * URLConnectonn u = netchinaren.openConnection ( );
+
+* 通过URLConnection对象获取的输入流和输出流，即可以与现有的CGI程序进行交互
+  	public Object getContent( ) throws IOException
+  	public int getContentLength( )
+  	public String getContentType( )
+  	public long getDate( )
+  	public long getLastModified( )
+  	**public InputStream getInputStream( )throws IOException**
+  	public OutputSteram getOutputStream( )throws IOException
+
+**URI、URL和URN的区别**
+
+URI ，uniform resource identifier，统一资源标识符，用来唯一的标识一个资源
+
+URL， uniform resource locator，统一资源定位符，它是一种具体的URI，即URL可以用来标识一个资源，而且还指明了如何locate这个资源
+
+URN，uniform resource name，统一资源命名，是通过名字来标识资源，比如mailto:java-net@java.sun.com
+
+URI是以一种抽象的，高层次概念定义统一资源标识，而URL和URN则是具体的资源标识的方式。URL和URN都是一种URI。在Java的URI中，一个URI实例可以代表绝对的，也可以是相对的，只要它符合URI的语法规则。而URL类则不仅符合语义，还包含了定位该资源的信息，因此它不能是相对的
+
+<img src="Java基础.assets/image-20230218121104819.png" alt="image-20230218121104819" style="zoom:67%;" />
