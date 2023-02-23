@@ -5251,7 +5251,141 @@ jdbc文件：
 
 <img src="Java基础.assets/image-20230223083923895.png" alt="image-20230223083923895" style="zoom:67%;" />
 
+#### Java 内置四大核心函数式接口
+
+<img src="Java基础.assets/image-20230223130544876.png" alt="image-20230223130544876" style="zoom:80%;" />
+
+<img src="Java基础.assets/image-20230223130557305.png" alt="image-20230223130557305" style="zoom:80%;" />
 
 
 
+#### 方法引用与构造器引用
 
+* 当要传递给Lambda体的操作，已经有实现的方法了，可以使用方法引用
+* 方法引用可以看做是Lambda表达式深层次的表达。换句话说，方法引用就是Lambda表达式，也就是函数式接口的一个实例，通过方法的名字来指向一个方法，可以认为是Lambda表达式的一个语法糖
+* 要求：**实现接口的抽象方法的参数列表和返回值类型，必须与方法引用的方法的参数列表和返回值类型保持一致**
+* 格式：使用操作符 “::” 将类(或对象) 与 方法名分隔开来
+* 如下三种主要使用情况：
+  	对象::实例方法名
+  	类::静态方法名
+  	类::实例方法名
+
+
+
+##### 方法引用
+
+<img src="Java基础.assets/image-20230223131138009.png" alt="image-20230223131138009" style="zoom:67%;" />
+
+<img src="Java基础.assets/image-20230223131327182.png" alt="image-20230223131327182" style="zoom:67%;" />
+
+##### 构造器引用
+
+格式： ClassName::new 
+与函数式接口相结合，自动与函数式接口中方法兼容。
+可以把构造器引用赋值给定义的方法，要求**构造器参数列表要与接口中抽象方法的参数列表一致！且方法的返回值即为构造器对应类的对象。**
+
+<img src="Java基础.assets/image-20230223131604466.png" alt="image-20230223131604466" style="zoom: 80%;" />
+
+##### 数组引用
+
+<img src="Java基础.assets/image-20230223132003155.png" alt="image-20230223132003155" style="zoom:80%;" />
+
+### Stream API
+
+Stream API ( java.util.stream)
+
+可以指定你希望对集合进行的操作，可以执行非常复杂的查找、过滤和映射数据等操作。 **使用Stream API 对集合数据进行操作，就类似于使用 SQL 执行的数据库查询**。也可以使用 Stream API 来并行执行操作
+
+Stream 和 Collection 集合的区别：**Collection 是一种静态的内存数据结构**，而 Stream 是有关计算的。**前者是主要面向内存，存储在内存中，后者主要是面向 CPU，通过 CPU 实现计算**
+
+集合讲的是数据，Stream讲的是计算
+
+①	Stream 自己不会存储元素。
+②	Stream 不会改变源对象。相反，他们会返回一个持有结果的新Stream
+③	Stream 操作是延迟执行的。这意味着他们会等到需要结果的时候才执行
+
+#### Stream操作步骤
+
+<img src="Java基础.assets/image-20230223132517106.png" alt="image-20230223132517106" style="zoom:80%;" />
+
+#### 创建Stream的不同方式
+
+1. 通过集合：
+
+Java8 中的 Collection 接口被扩展，提供了两个获取流的方法：
+
+`default Stream<E> stream()` : 返回一个顺序流
+`default Stream<E> parallelStream()` : 返回一个并行流
+
+2. 通过数组：
+
+ava8 中的Arrays 的**静态**方法 stream() 可以获取数组流：
+
+`static <T> Stream<T> stream(T[] array)`: 返回一个流
+
+重载形式，能够处理对应基本类型的数组：
+
+	public static IntStream stream(int[] array)
+	public static LongStream stream(long[] array)
+	public static DoubleStream stream(double[] array)
+
+3. 通过Stream的of():
+
+可以调用Stream类静态方法 of(), 通过显示值创建一个流。它可以接收任意数量的参数
+
+`public static<T> Stream<T> of(T... values)` : 返回一个流
+
+4. 创建无限流
+
+可以使用静态方法 Stream.iterate() 和 Stream.generate()：创建无限流
+
+public static<T> Stream<T> iterate(final T seed, final UnaryOperator<T> f)	迭代
+
+public static<T> Stream<T> generate(Supplier<T> s)  	生成
+
+<img src="Java基础.assets/image-20230223133334411.png" alt="image-20230223133334411" style="zoom:67%;" />
+
+#### Stream的中间操作
+
+<img src="Java基础.assets/image-20230223133722305.png" alt="image-20230223133722305" style="zoom: 67%;" />
+
+<img src="Java基础.assets/image-20230223133733237.png" alt="image-20230223133733237" style="zoom: 67%;" />
+
+<img src="Java基础.assets/image-20230223133741095.png" alt="image-20230223133741095" style="zoom: 67%;" />
+
+<img src="Java基础.assets/image-20230223134153028.png" alt="image-20230223134153028" style="zoom:67%;" />
+
+<img src="Java基础.assets/image-20230223134159494.png" alt="image-20230223134159494" style="zoom: 67%;" />
+
+<img src="Java基础.assets/image-20230223134210257.png" alt="image-20230223134210257" style="zoom: 67%;" />
+
+<img src="Java基础.assets/image-20230223134218816.png" alt="image-20230223134218816" style="zoom: 67%;" />
+
+![image-20230223134227238](Java基础.assets/image-20230223134227238.png)
+
+![image-20230223135408021](Java基础.assets/image-20230223135408021.png)
+
+### Option类
+
+* 为了解决空指针异常
+
+* Optional<T> 类(java.util.Optional) 是一个容器类，它可以保存类型T的值，代表这个值存在。或者仅仅保存null，表示这个值不存在。原来用 null 表示一个值不存在，现在 Optional 可以更好的表达这个概念。并且可以避免空指针异常
+* Optional类的Javadoc描述如下：这是一个可以为null的容器对象。如果值存在则isPresent()方法会返回true，调用get()方法会返回该对象。
+
+* Optional提供很多有用的**方法**，这样我们就不用显式进行空值检测。
+  * 创建Optional类对象的方法：
+    	Optional.of(T t) : 创建一个 Optional 实例，t必须非空
+    	Optional.empty() : 创建一个空的 Optional 实例
+    	Optional.ofNullable(T t)：t可以为null
+  * 判断Optional容器中是否包含对象：
+    	boolean isPresent() : 判断是否包含对象
+    	**void ifPresent(Consumer<? super T> consumer)** ：如果有值，就执行Consumer接口的实现代码，并且该值会作为参数传给它
+  * 获取Optional容器的对象：
+    	T get(): 如果调用对象包含值，返回该值，否则抛异常
+    	T orElse(T other) ：如果有值则将其返回，否则返回指定的other对象
+    	T orElseGet(Supplier<? extends T> other) ：如果有值则将其返回，否则返回由Supplier接口实现提供的对象
+    	T orElseThrow(Supplier<? extends X> exceptionSupplier) ：如果有值则将其返回，否则抛出由Supplier接口实现提供的异常
+
+<img src="Java基础.assets/image-20230223135755467.png" alt="image-20230223135755467" style="zoom:67%;" />
+
+<img src="Java基础.assets/image-20230223135803363.png" alt="image-20230223135803363" style="zoom:67%;" />
