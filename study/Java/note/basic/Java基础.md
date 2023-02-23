@@ -1,4 +1,4 @@
-
+`
 
 # Java基础
 
@@ -4177,7 +4177,7 @@ Java NIO (New IO，Non-Blocking IO)是从Java 1.4版本开始引入的一套新�
 
 ## 网络编程
 
-#### 基本
+#### 基础知识
 
 联网的底层细节被隐藏在 Java 的本机安装系统里，由 JVM 进行控制。并且 Java 实现了一个跨平台的网络库，程序员面对的是一个统一的网络编程环境
 
@@ -4240,6 +4240,8 @@ InetAddress 类对象含有一个 Internet 主机地址的域名和IP 地址：w
 
 
 ### TCP网络编程
+
+**注意，客户端和服务端有各自的输入输出流**
 
 <img src="Java基础.assets/image-20230218105752019.png" alt="image-20230218105752019" style="zoom:67%;" />
 
@@ -4395,3 +4397,861 @@ URN，uniform resource name，统一资源命名，是通过名字来标识资�
 URI是以一种抽象的，高层次概念定义统一资源标识，而URL和URN则是具体的资源标识的方式。URL和URN都是一种URI。在Java的URI中，一个URI实例可以代表绝对的，也可以是相对的，只要它符合URI的语法规则。而URL类则不仅符合语义，还包含了定位该资源的信息，因此它不能是相对的
 
 <img src="Java基础.assets/image-20230218121104819.png" alt="image-20230218121104819" style="zoom:67%;" />
+
+
+
+## Java的反射机制
+
+### 概述
+
+java.lang.reflect
+
+* Reflection（反射）是被视为**动态语言**的关键，反射机制允许程序在执行期借助于**Reflection API**取得任何类的内部信息，并能直接操作任意对象的内部属性及方法
+* 加载完类之后，在**堆内存的方法区**中就产生了一个Class类型的对象（一个类只有一个Class对象），这个对象就包含了完整的类的结构信息。我们可以通过这个对象看到类的结构。这个对象就像一面镜子，透过这个镜子看到类的结构，所以，我们形象的称之为：反射。
+
+<img src="Java基础.assets/image-20230219093741395.png" alt="image-20230219093741395" style="zoom:67%;" />
+
+* Java反射机制提供的功能
+  	在运行时判断任意一个对象所属的类
+  	在运行时构造任意一个类的对象
+  	在运行时判断任意一个类所具有的成员变量和方法
+  	在运行时获取泛型信息
+  	在运行时调用任意一个对象的成员变量和方法
+  	在运行时处理注解
+  	生成动态代理
+
+* 反射相关的主要API
+
+  	**java.lang.Class**:代表一个类
+  	java.lang.reflect.Method:代表类的方法
+  	java.lang.reflect.Field:代表类的成员变量
+  	java.lang.reflect.Constructor:代表类的构造器
+  	… …
+
+
+
+### Class类
+
+#### 介绍
+
+在**Object 类**中定义了以下的方法，此方法将被所有子类继承：`public final Class getClass`
+以上的方法返回值的类型是一个Class 类，此类是 Java 反射的源头，实际上所谓反射从程序的运行结果来看也很好理解，即：可以通过对象反射求出类的名称
+
+<img src="Java基础.assets/image-20230219094737228.png" alt="image-20230219094737228" style="zoom:67%;" />
+
+对象照镜子后可以得到的信息：某个类的属性、方法和构造器、某个类到底实现了哪些接口。对于每个类而言，JRE 都为其保留一个不变的 Class 类型的对象。一个 Class 对象包含了特定某个结构(class/interface/enum/annotation/primitive type/void/[])的有关信息
+	**Class本身也是一个类**
+	Class 对象只能由系统建立对象
+	一个加载的类在 JVM 中只会有一个Class实例
+	一个Class对象对应的是一个加载到JVM中的一个.class文件
+	每个类的实例都会记得自己是由哪个 Class 实例所生成
+	通过Class可以完整地得到一个类中的所有被加载的结构
+	Class类是Reflection的根源，针对任何你想动态加载、运行的类，唯有先获得相应的Class对象
+
+```java
+ public void test2(){
+
+        for(int i = 0;i < 100;i++){
+            int num = new Random().nextInt(3);//0,1,2
+            String classPath = "";
+            switch(num){
+                case 0:
+                    classPath = "java.util.Date";
+                    break;
+                case 1:
+                    classPath = "java.lang.Object";
+                    break;
+                case 2:
+                    classPath = "com.atguigu.java.Person";
+                    break;
+            }
+
+            try {
+                Object obj = getInstance(classPath);
+                System.out.println(obj);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /*
+    创建一个指定类的对象。
+    classPath:指定类的全类名
+     */
+    public Object getInstance(String classPath) throws Exception {
+       Class clazz =  Class.forName(classPath);
+       return clazz.newInstance();
+    }
+```
+
+
+
+
+
+####Class类的常用方法
+
+![image-20230219095435709](Java基础.assets/image-20230219095435709.png)
+
+一个栗子
+
+```java
+String str = "test4.Person";
+Class clazz = Class.forName(str);
+Object obj = clazz.newInstance();
+Field field = clazz.getField("name");
+field.set(obj, "Peter");
+Object name = field.get(obj);
+System.out.println(name);
+//注：test4.Person是test4包下的Person类
+```
+
+
+
+#### 如何获取Class的实例
+
+1. 前提： 若已知具体的类，通过类的 class 属性获取， 该 方法最为 安全可靠，
+   程序性能最高
+   实例 `Class clazz1 = Person.class;`
+2. 前提： 已知某个类的实例，调用该实例的 getClass 方法 获取 Class 对象
+   实例 `Person p1 = new Person();`
+           `Class clazz2 = p1.getClass();`
+3. 前提： 已知一个类的全类名，且该类在类路径下， 可 通过 Class 类的静态方法 forName 获取，可能抛出 ClassNotFoundException
+   实例 `Class clazz3 = Class.forName("com.atguigu.java.Person");`
+4. 其他方式 
+   ClassLoadercl = this.getClass getClassLoader
+   Class clazz4 =cl.loadClass 类的全类名
+
+#### 拥有Class对象
+
+（1）	class：外部类，成员(成员内部类，静态内部类)，局部内部类，匿名内部类
+（2）	interface：接口
+（3）    []：数组
+
+（4）	enum：枚举
+（5）	annotation：注解@interface
+（6）	primitive type：基本数据类型
+（7）	void
+
+<img src="Java基础.assets/image-20230219101141486.png" alt="image-20230219101141486" style="zoom:50%;" />
+
+
+
+### 类的加载过程
+
+当程序主动使用某个类时，如果该类还未被加载到内存中，则系统会通过如下三个步骤来对该类进行初始化
+
+<img src="Java基础.assets/image-20230221123114163.png" alt="image-20230221123114163" style="zoom:80%;" />
+
+* 加载：将class文件字节码内容加载到内存中，并将这些静态数据转换成方法区的运行时数据结构，然后生成一个代表这个类的java.lang.Class对象，作为方法区中类数据的访问入口（即引用地址）。所有需要访问和使用类数据只能通过这个Class对象。这个加载的过程需要`类加载器`参与
+* 链接：将Java类的二进制代码合并到JVM的运行状态之中的过程。
+  	验证：确保加载的类信息符合JVM规范，例如：以cafe开头，没有安全方面的问题
+  	准备：正式**为类变量（static）分配内存**并设置类变量**默认初始值**的阶段，这些内存都将在方法区中进行分配。
+  	解析：虚拟机**常量池**内的符号引用（常量名）替换为直接引用（地址）的过程
+* 初始化
+  	执行**类构造器<clinit>()**方法的过程。**类构造器<clinit>()方法是由编译期自动收集类中所有类变量的赋值动作和静态代码块中的语句合并产生的**。（类构造器是构造类信息的，不是构造该类对象的构造器）
+  	当初始化一个类的时候，如果发现其父类还没有进行初始化，则需要先触发其父类的初始化
+  	虚拟机会保证一个类的<clinit>()方法在多线程环境中被正确加锁和同步
+
+<img src="Java基础.assets/image-20230221124134228.png" alt="image-20230221124134228" style="zoom:80%;" />
+
+#### **什么时候发生类的初始化？**
+
+* 类的主动引用（一定会发生类的初始化）
+  	当虚拟机启动，先初始化main方法所在的类
+  	new一个类的对象
+  	调用类的静态成员（除了final常量）和静态方法
+  	使用java.lang.reflect包的方法对类进行反射调用
+  	当初始化一个类，如果其父类没有被初始化，则先会初始化它的父类
+* 类的被动引用（不会发生类的初始化）
+  	当访问一个静态域时，只有真正声明这个域的类才会被初始化
+  	当通过子类引用父类的静态变量，不会导致子类初始化
+  	通过数组定义类引用，不会触发此类的初始化
+  	引用常量不会触发此类的初始化（常量在链接阶段就存入调用类的常量池中了）
+
+<img src="Java基础.assets/image-20230221124722149.png" alt="image-20230221124722149" style="zoom:80%;" />
+
+#### 类加载器的作用
+
+* 类加载的作用： 将 class 文件字节码内容加载到内存中，并将这些静态数据转换成方法区的运行时数据结构 然后在堆中生成一个代表这个**类**的 java lang Class 对象，作为方法区中**类数据**的访问入口
+* 类缓存： 标准的 JavaSE 类加载器可以按要求查找类，一旦某个类被加载到类加载器中它将维持加载缓存 一段时间 。不过 JVM 垃圾回收机制可以回收这些 Class 对象 
+
+#### ClassLoader
+
+类加载器作用是用来把类(class)装载进内存的。JVM 规范定义了如下类型的类的加载器
+
+> ```
+> 引导类加载器主要负责加载java的核心类库，无法加载自定义类
+> ```
+
+<img src="Java基础.assets/image-20230221125453791.png" alt="image-20230221125453791" style="zoom:80%;" />
+
+```java
+//1.获取一个系统类加载器
+ClassLoader classloader = ClassLoader.getSystemClassLoader();
+System.out.println(classloader);
+//2.获取系统类加载器的父类加载器，即扩展类加载器
+classloader = classloader.getParent();
+System.out.println(classloader);
+//3.获取扩展类加载器的父类加载器，即引导类加载器
+classloader = classloader.getParent();
+System.out.println(classloader);
+//4.测试当前类由哪个类加载器进行加载
+classloader = Class.forName("exer2.ClassloaderDemo").getClassLoader();
+System.out.println(classloader);
+//5.测试JDK提供的Object类由哪个类加载器加载
+classloader = Class.forName("java.lang.Object").getClassLoader();
+System.out.println(classloader);
+//*6.关于类加载器的一个主要方法：getResourceAsStream(String str):获取类路径下的指定文件的输入流
+InputStream in = null;
+in = this.getClass().getClassLoader().getResourceAsStream("exer2\\test.properties");
+System.out.println(in);
+```
+
+
+
+### 创建运行时类的对象
+
+#### 有了Class对象，能做什么？
+
+创建类的对象： 调用 Class 对象的 `newInstance()` 方法
+要求： 1）类必须有一个无参数的构造器
+			 2）类的构造器的访问权限需要足够
+
+难道没有无参的构造器就不能创建对象了吗？
+不是！只要在操作的时候明确的调用类中的构造器，并将参数传递进去之后，才可以实例化操作。步骤如下：
+
+1）	通过Class类的`getDeclaredConstructor(Class … parameterTypes)`取得本类的指定形参类型的构造器
+2）	向构造器的形参中传递一个对象数组进去，里面包含了构造器中所需的各个参数
+3）	通过Constructor实例化对象
+
+```java
+//1.根据全类名获取对应的Class对象
+String name = “atguigu.java.Person";
+Class clazz = null;
+clazz = Class.forName(name);
+//2.调用指定参数结构的构造器，生成Constructor的实例
+Constructor con = clazz.getConstructor(String.class,Integer.class); 
+//3.通过Constructor的实例创建对应类的对象，并初始化类属性
+Person p2 = (Person) con.newInstance("Peter",20);
+System.out.println(p2);
+
+
+public void test1() throws IllegalAccessException, InstantiationException {
+
+        Class<Person> clazz = Person.class;
+        /*
+        newInstance():调用此方法，创建对应的运行时类的对象。内部调用了运行时类的空参的构造器。
+
+        要想此方法正常的创建运行时类的对象，要求：
+        1.运行时类必须提供空参的构造器
+        2.空参的构造器的访问权限得够。通常，设置为public。
+
+
+        在javabean中要求提供一个public的空参构造器。原因：
+        1.便于通过反射，创建运行时类的对象
+        2.便于子类继承此运行时类时，默认调用super()时，保证父类有此构造器
+
+         */
+        Person obj = clazz.newInstance();
+        System.out.println(obj);
+
+}
+```
+
+
+
+### 获取运行时类的完整结构
+
+Field（属性）、Method（方法）、Constructor、Superclass、Interface、Annotation
+
+通过反射可以获取
+
+1. 实现的全部接口
+
+   ```java
+   //确定此对象所表示的类或接口实现的接口
+   public Class<?>[] getInterfaces();
+   ```
+
+2. 所继承的父类
+
+   ```java
+   //返回表示此Class所表示的实体（类、接口、基本类型）的父类的Class
+   public Class<? Super T> getSuperclass();
+   ```
+
+3. 全部的构造器
+
+   ```java
+   //返回此Class对象所表示的类的所有public构造方法
+   public Constructor<T>[] getConstructors();
+   //返回此Class对象表示的类声明的所有构造方法
+   public Constructor<T>[] getDeclaredConstructors();
+   //Constructor类中：
+   取得修饰符: public int getModifiers();
+   取得方法名称: public String getName();
+   取得参数的类型：public Class<?>[] getParameterTypes();
+   ```
+
+4. 全部的方法
+
+   ```java
+   //返回此Class对象所表示的类或接口的全部方法
+   public Method[] getDeclaredMethods()
+   //返回此Class对象所表示的类或接口的public的方法
+   public Method[] getMethods()
+   //Method类中：
+   public Class<?> getReturnType()				取得全部的返回值
+   public Class<?>[] getParameterTypes()		取得全部的参数
+   public int getModifiers()					取得修饰符
+   public Class<?>[] getExceptionTypes()		取得异常信息
+   ```
+
+5. 全部的Field
+
+   ```java
+   //返回此Class对象所表示的类或接口的public的Field
+   public Field[] getFields()
+   //返回此Class对象所表示的类或接口的全部Field
+   public Field[] getDeclaredFields()
+   //Field方法中：
+   public int getModifiers()  					以整数形式返回此Field的修饰符
+   public Class<?> getType()  					得到Field的属性类型
+   public String getName()  					返回Field的名称。
+   ```
+
+6. Annotation相关
+
+   ```java
+   get Annotation(Class<T> annotationClass)
+   getDeclaredAnnotations()
+   ```
+
+7. 泛型相关
+
+   ```java
+   //获取父类泛型类型
+   Type getGenericSuperclass()
+   //泛型类型：ParameterizedType
+   //获取实际的泛型类型参数数组
+   getActualTypeArguments()
+   ```
+
+8. 类所在的包
+
+   ```java
+   Package getPackage()
+   ```
+
+举个栗子
+
+```java
+public class ReflectionTest {
+
+    /*
+
+        不需要掌握
+     */
+    @Test
+    public void testField() throws Exception {
+        Class clazz = Person.class;
+
+        //创建运行时类的对象
+        Person p = (Person) clazz.newInstance();
+
+
+        //获取指定的属性：要求运行时类中属性声明为public
+        //通常不采用此方法
+        Field id = clazz.getField("id");
+
+        /*
+        设置当前属性的值
+
+        set():参数1：指明设置哪个对象的属性   参数2：将此属性值设置为多少
+         */
+
+        id.set(p,1001);
+
+        /*
+        获取当前属性的值
+        get():参数1：获取哪个对象的当前属性值
+         */
+        int pId = (int) id.get(p);
+        System.out.println(pId);
+
+
+    }
+    /*
+    如何操作运行时类中的指定的属性 -- 需要掌握
+     */
+    @Test
+    public void testField1() throws Exception {
+        Class clazz = Person.class;
+
+        //创建运行时类的对象
+        Person p = (Person) clazz.newInstance();
+
+        //1. getDeclaredField(String fieldName):获取运行时类中指定变量名的属性
+        Field name = clazz.getDeclaredField("name");
+
+        //2.保证当前属性是可访问的
+        name.setAccessible(true);
+        //3.获取、设置指定对象的此属性值
+        name.set(p,"Tom");
+
+        System.out.println(name.get(p));
+    }
+
+    /*
+    如何操作运行时类中的指定的方法 -- 需要掌握
+     */
+    @Test
+    public void testMethod() throws Exception {
+
+        Class clazz = Person.class;
+
+        //创建运行时类的对象
+        Person p = (Person) clazz.newInstance();
+
+        /*
+        1.获取指定的某个方法
+        getDeclaredMethod():参数1 ：指明获取的方法的名称  参数2：指明获取的方法的形参列表
+         */
+        Method show = clazz.getDeclaredMethod("show", String.class);
+        //2.保证当前方法是可访问的
+        show.setAccessible(true);
+
+        /*
+        3. 调用方法的invoke():参数1：方法的调用者  参数2：给方法形参赋值的实参
+        invoke()的返回值即为对应类中调用的方法的返回值。
+         */
+        Object returnValue = show.invoke(p,"CHN"); //String nation = p.show("CHN");
+        System.out.println(returnValue);
+
+        System.out.println("*************如何调用静态方法*****************");
+
+        // private static void showDesc()
+
+        Method showDesc = clazz.getDeclaredMethod("showDesc");
+        showDesc.setAccessible(true);
+        //如果调用的运行时类中的方法没有返回值，则此invoke()返回null
+//        Object returnVal = showDesc.invoke(null);
+        Object returnVal = showDesc.invoke(Person.class);
+        System.out.println(returnVal);//null
+
+    }
+
+    /*
+    如何调用运行时类中的指定的构造器
+     */
+    @Test
+    public void testConstructor() throws Exception {
+        Class clazz = Person.class;
+
+        //private Person(String name)
+        /*
+        1.获取指定的构造器
+        getDeclaredConstructor():参数：指明构造器的参数列表
+         */
+
+        Constructor constructor = clazz.getDeclaredConstructor(String.class);
+
+        //2.保证此构造器是可访问的
+        constructor.setAccessible(true);
+
+        //3.调用此构造器创建运行时类的对象
+        Person per = (Person) constructor.newInstance("Tom");
+        System.out.println(per);
+
+    }
+
+}
+```
+
+
+
+### 调用运行时类的指定结构
+
+1. **调用指定方法**
+
+   通过反射，调用类中的方法，通过Method类完成。步骤：
+
+   1.	通过`Class`类的`getMethod(String name,Class…parameterTypes)`方法取得一个`Method`对象，并设置此方法操作时所需要的参数类型
+   2.	之后使用`Object invoke(Object obj, Object[] args)`进行调用，并向方法中传递要设置的obj对象的参数信息
+
+   关于`Object invoke(Object obj, Object …  args)`:
+
+   1. Object 对应**原方法的返回值**，若原方法无返回值，此时返回null
+
+   2. 若原方法若为静态方法，此时形参Object obj可为null
+
+   3. 若原方法形参列表为空，则Object[] args为null
+
+   4. 若原方法声明为private,则需要在调用此`invoke()`方法前，显式调用
+
+      `Method`对象的`setAccessible(true)`方法，将可访问private的方法
+
+<img src="Java基础.assets/image-20230221134213254.png" alt="image-20230221134213254" style="zoom:80%;" />
+
+2. **调用指定属性**
+
+   在反射机制中，可以直接通过Field类操作类中的属性，通过Field类提供的set()和get()方法就可以完成设置和取得属性内容的操作。
+
+   ```java
+   //返回此Class对象表示的类或接口的指定的public的Field
+   public Field getField(String name);
+   //返回此Class对象表示的类或接口的指定的Field
+   public Field getDeclaredField(String name);
+   ```
+
+   在Field中:
+
+   ```java
+   //取得指定对象obj上此Field的属性内容
+   public Object get(Object obj);
+   //设置指定对象obj上此Field的属性内容
+   public void set(Object obj,Object value);
+   ```
+
+   **关于setAccessible方法的使用**
+
+   * `Method`和`Field`、`Constructor`对象都有`setAccessible()`方法
+   * `setAccessible`启动和禁用访问安全检查的开关
+   * 参数值为true则指示反射的对象在使用时应该取消**Java语言访问检查**
+     	提高反射的效率。如果代码中必须用反射，而该句代码需要频繁的被调用，那么请设置为true
+     	使得原本无法访问的**私有成员也可以访问**
+   * 参数值为false则指示反射的对象应该实施Java语言访问检查
+
+举个栗子
+
+```java
+public void test2() throws Exception{
+    Class clazz = Person.class;
+    //1.通过反射，创建Person类的对象
+    Constructor cons = clazz.getConstructor(String.class,int.class);
+    Object obj = cons.newInstance("Tom", 12);
+    Person p = (Person) obj;
+    System.out.println(p.toString());
+    //2.通过反射，调用对象指定的属性、方法
+    //调用属性
+    Field age = clazz.getDeclaredField("age");
+    age.set(p,10);
+    System.out.println(p.toString());
+
+    //调用方法
+    Method show = clazz.getDeclaredMethod("show");
+    show.invoke(p);
+
+    System.out.println("*******************************");
+
+    //通过反射，可以调用Person类的私有结构的。比如：私有的构造器、方法、属性
+    //调用私有的构造器
+    Constructor cons1 = clazz.getDeclaredConstructor(String.class);
+    cons1.setAccessible(true);
+    Person p1 = (Person) cons1.newInstance("Jerry");
+    System.out.println(p1);
+
+    //调用私有的属性
+    Field name = clazz.getDeclaredField("name");
+    name.setAccessible(true);
+    name.set(p1,"HanMeimei");
+    System.out.println(p1);
+
+    //调用私有的方法
+    Method showNation = clazz.getDeclaredMethod("showNation", String.class);
+    showNation.setAccessible(true);
+    String nation = (String) showNation.invoke(p1,"中国");//相当于String nation = p1.showNation("中国")
+    System.out.println(nation);
+}
+```
+
+### 反射的应用：动态代理
+
+#### 基本
+
+* 代理设计模式的原理:
+  使用一个代理将对象包装起来, 然后用该代理对象取代原始对象。任何对原始对象的调用都要通过代理。代理对象决定是否以及何时将方法调用转到原始对象上
+  之前的代理机制的操作，属于静态代理，特征是代理类和目标对象的类都是在编译期间确定下来，不利于程序的扩展。同时，每一个代理类只能为一个接口服务，这样一来程序开发中必然产生过多的代理。**最好可以通过一个代理类完成全部的代理功能**
+
+* 动态代理是指客户通过代理类来调用其它对象的方法，并且是在程序运行时根据需要**动态创建目标类的代理对象**
+* 动态代理使用场合:
+  	调试
+  	远程方法调用
+* 动态代理相比于静态代理的优点：抽象角色中（接口）声明的所有方法都被转移到调用处理器一个集中的方法中处理，这样，我们可以更加灵活和统一的处理众多的方法
+
+#### Java动态代理相关API
+
+* Proxy ：专门完成代理的操作类，是所有动态代理类的父类。通过此类为一个或多个接口动态地生成实现类
+
+* <img src="Java基础.assets/image-20230221140708668.png" alt="image-20230221140708668" style="zoom:67%;" />
+
+#### 动态代理步骤
+
+1. 创建一个实现接口`InvocationHandler`的类，它必须实现invoke方法，以完成代理的具体操作
+
+   <img src="Java基础.assets/image-20230221144734900.png" alt="image-20230221144734900" style="zoom:67%;" />
+
+2. 创建被代理的类以及接口
+
+   <img src="Java基础.assets/image-20230221145529575.png" alt="image-20230221145529575" style="zoom:67%;" />
+
+<img src="Java基础.assets/image-20230221150053275.png" alt="image-20230221150053275" style="zoom: 67%;" />
+
+<img src="Java基础.assets/image-20230221150351335.png" alt="image-20230221150351335" style="zoom:67%;" />
+
+#### 动态代理与AOP (Aspect Orient Programming)
+
+OOP（Object-Oriented Programing，面向对象编程）引入封装、继承和多态性等概念来建立一种对象层次结构，用以模拟公共行为的一个集合。当我们需要为分散的对象引入公共行为的时候，OOP则显得无能为力。也就是说，OOP允许你定义从上到下的关系，但并不适合定义从左到右的关系
+
+<img src="Java基础.assets/image-20230221151614192.png" alt="image-20230221151614192" style="zoom:67%;" />
+
+<img src="Java基础.assets/image-20230221151623434.png" alt="image-20230221151623434" style="zoom:67%;" />
+
+```java
+interface Human{
+
+    String getBelief();
+
+    void eat(String food);
+
+}
+//被代理类
+class SuperMan implements Human{
+
+
+    @Override
+    public String getBelief() {
+        return "I believe I can fly!";
+    }
+
+    @Override
+    public void eat(String food) {
+        System.out.println("我喜欢吃" + food);
+    }
+}
+
+class HumanUtil{
+
+    public void method1(){
+        System.out.println("====================通用方法一====================");
+
+    }
+
+    public void method2(){
+        System.out.println("====================通用方法二====================");
+    }
+
+}
+
+/*
+要想实现动态代理，需要解决的问题？
+问题一：如何根据加载到内存中的被代理类，动态的创建一个代理类及其对象。
+问题二：当通过代理类的对象调用方法a时，如何动态的去调用被代理类中的同名方法a。
+
+
+ */
+
+class ProxyFactory{
+    //调用此方法，返回一个代理类的对象。解决问题一
+    public static Object getProxyInstance(Object obj){//obj:被代理类的对象
+        MyInvocationHandler handler = new MyInvocationHandler();
+
+        handler.bind(obj);  //会调用handler中的invoke，把obj传入invoke的第一个参数，并自动获取obj的method
+
+        return Proxy.newProxyInstance(obj.getClass().getClassLoader(),obj.getClass().getInterfaces(),handler);
+    }
+
+}
+
+class MyInvocationHandler implements InvocationHandler{
+
+    private Object obj;//需要使用被代理类的对象进行赋值
+
+    public void bind(Object obj){
+        this.obj = obj;
+    }
+
+    //当我们通过代理类的对象，调用方法a时，就会自动的调用如下的方法：invoke()
+    //将被代理类要执行的方法a的功能就声明在invoke()中
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+        HumanUtil util = new HumanUtil();
+        util.method1();
+
+        //method:即为代理类对象调用的方法，此方法也就作为了被代理类对象要调用的方法
+        //obj:被代理类的对象
+        Object returnValue = method.invoke(obj,args);
+
+        util.method2();
+
+        //上述方法的返回值就作为当前类中的invoke()的返回值。
+        return returnValue;
+
+    }
+}
+
+public class ProxyTest {
+
+    public static void main(String[] args) {
+        SuperMan superMan = new SuperMan();
+        //proxyInstance:代理类的对象
+        Human proxyInstance = (Human) ProxyFactory.getProxyInstance(superMan);
+        //当通过代理类对象调用方法时，会自动的调用被代理类中同名的方法
+        String belief = proxyInstance.getBelief();
+        System.out.println(belief);
+        proxyInstance.eat("四川麻辣烫");
+
+        System.out.println("*****************************");
+
+        NikeClothFactory nikeClothFactory = new NikeClothFactory();
+
+        ClothFactory proxyClothFactory = (ClothFactory) ProxyFactory.getProxyInstance(nikeClothFactory);
+
+        proxyClothFactory.produceCloth();
+
+    }
+}
+```
+
+```java
+ * 静态代理举例
+ *
+ * 特点：代理类和被代理类在编译期间，就确定下来了。
+interface ClothFactory{
+
+    void produceCloth();
+
+}
+
+//代理类
+class ProxyClothFactory implements ClothFactory{
+
+    private ClothFactory factory;//用被代理类对象进行实例化
+
+    public ProxyClothFactory(ClothFactory factory){
+        this.factory = factory;
+    }
+
+    @Override
+    public void produceCloth() {
+        System.out.println("代理工厂做一些准备工作");
+
+        factory.produceCloth();
+
+        System.out.println("代理工厂做一些后续的收尾工作");
+
+    }
+}
+
+//被代理类
+class NikeClothFactory implements ClothFactory{
+
+    @Override
+    public void produceCloth() {
+        System.out.println("Nike工厂生产一批运动服");
+    }
+}
+
+public class StaticProxyTest {
+    public static void main(String[] args) {
+        //创建被代理类的对象
+        ClothFactory nike = new NikeClothFactory();
+        //创建代理类的对象
+        ClothFactory proxyClothFactory = new ProxyClothFactory(nike);
+
+        proxyClothFactory.produceCloth();
+
+    }
+}
+```
+
+
+
+* 使用Proxy生成一个动态代理时，往往并不会凭空产生一个动态代理，这样没有太大的意义。通常都是为指定的目标对象生成动态代理
+* 这种动态代理在AOP中被称为AOP代理，AOP代理可代替目标对象，AOP代理包含了目标对象的全部方法。但AOP代理中的方法与目标对象的方法存在差异：**AOP代理里的方法可以在执行目标方法之前、之后插入一些通用处理**
+
+<img src="Java基础.assets/image-20230221155407142.png" alt="image-20230221155407142" style="zoom:67%;" />
+
+### 补充：Property读取配置文件
+
+```java
+ public void test2() throws Exception {
+
+        Properties pros =  new Properties();
+        //此时的文件默认在当前的module下。
+        //读取配置文件的方式一：
+//        FileInputStream fis = new FileInputStream("jdbc.properties");
+//        FileInputStream fis = new FileInputStream("src\\jdbc1.properties");
+//        pros.load(fis);
+
+        //读取配置文件的方式二：使用ClassLoader
+        //配置文件默认识别为：当前module的src下
+        ClassLoader classLoader = ClassLoaderTest.class.getClassLoader();
+        InputStream is = classLoader.getResourceAsStream("jdbc1.properties");//可以看出装载器中有流
+        pros.load(is);//从输入流中获取键值对
+
+        String user = pros.getProperty("user");			//通过键获取值
+        String password = pros.getProperty("password");	//通过键获取值
+        System.out.println("user = " + user + ",password = " + password);
+    }
+
+jdbc文件：
+   	user=\u5434\u98DE
+	password=abc123
+程序输出：
+    user = 黄峰,password = abc123
+```
+
+
+
+## Java8新特性
+
+
+
+### Lambda表达式
+
+是一个`匿名函数`，我们可以把 Lambda 表达式理解为是 一段`可以传递的代码`
+
+ Lambda 表达式中的参数类型都是由编译器推断得出的。Lambda 表达式中无需指定类型，程序依然可以编译，这是因为 `javac` 根据程序的上下文，在后台推断出了参数的类型。Lambda 表达式的类型依赖于上下文环境，是由编译器推断出来的。这就是所谓的 `类型推断`
+
+#### 转换举例
+
+<img src="Java基础.assets/image-20230223081642815.png" alt="image-20230223081642815" style="zoom: 67%;" />
+
+<img src="Java基础.assets/image-20230223081714622.png" alt="image-20230223081714622" style="zoom:67%;" />
+
+
+
+#### 语法格式
+
+<img src="Java基础.assets/image-20230223082000623.png" alt="image-20230223082000623" style="zoom: 80%;" />
+
+<img src="Java基础.assets/image-20230223082008974.png" alt="image-20230223082008974" style="zoom:80%;" />
+
+
+
+### 函数式(Functional)接口
+
+#### 基本
+
+* 只包含**一个抽象方法**的接口，称为函数式接口
+* 你可以通过 Lambda 表达式来创建该接口的对象。（若 Lambda 表达式抛出一个受检异常(即：非运行时异常)，那么该异常需要在目标接口的抽象方法上进行声明）
+* 我们可以在一个接口上使用 **@FunctionalInterface** 注解，这样做可以检查它是否是一个函数式接口。同时 javadoc 也会包含一条声明，说明这个接口是一个函数式接口
+* 在**java.util.function**包下定义了Java 8 的丰富的函数式接口
+
+在Java8中，Lambda表达式就是一个**函数式接口的实例**。这就是Lambda表达式和函数式接口的关系。也就是说，只要一个对象是函数式接口的实例，那么该对象就可以用Lambda表达式来表示。所以以前用匿名实现类表示的现在都可以用Lambda表达式来写
+
+#### 函数式接口举例
+
+<img src="Java基础.assets/image-20230223083228222.png" alt="image-20230223083228222" style="zoom: 80%;" />
+
+<img src="Java基础.assets/image-20230223083328870.png" alt="image-20230223083328870" style="zoom: 67%;" />
+
+<img src="Java基础.assets/image-20230223083923895.png" alt="image-20230223083923895" style="zoom:67%;" />
+
+
+
+
+
